@@ -14,6 +14,7 @@
     "@corsair-dev/googlecalendar": "^0.1.4",
     "@prisma/adapter-pg": "^7.8.0",
     "@prisma/client": "^7.8.0",
+    "better-auth": "^1.6.18",
     "corsair": "^0.1.76",
     "dotenv": "^17.4.2",
     "next": "16.2.9",
