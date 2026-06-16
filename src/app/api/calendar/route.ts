@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getAuthenticatedCorsairTenant } from "@/lib/corsair-auth";
-import { getSession } from "@/lib/server";
+import { getErrorMessage, getErrorStatus, requireSession } from "../utils";
 
 type CreateEventRequestBody = {
   calendarId?: string;
@@ -20,37 +20,7 @@ type CreateEventRequestBody = {
   };
 };
 
-function getErrorMessage(error: unknown) {
-  return error instanceof Error
-    ? error.message
-    : "Failed to handle Google Calendar request";
-}
 
-function getErrorStatus(error: unknown) {
-  const message = getErrorMessage(error);
-  if (message.includes("Unauthorized") || message.includes("not connected")) {
-    return 401;
-  }
-  if (message.includes("not granted") || message.includes("not configured")) {
-    return 403;
-  }
-  return 500;
-}
-
-async function requireSession() {
-  const session = await getSession();
-
-  if (!session?.user) {
-    return {
-      response: NextResponse.json(
-        { success: false, error: "Unauthorized" },
-        { status: 401 },
-      ),
-    };
-  }
-
-  return { userId: session.user.id };
-}
 
 export async function POST(request: Request) {
   const auth = await requireSession();

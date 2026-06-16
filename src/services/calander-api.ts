@@ -2,7 +2,7 @@ import { CalendarEvent } from "@/types";
 import { formatTime } from "../utils";
 
 export const fetchCalendarEvents = async (): Promise<CalendarEvent[]> => {
-  const response = await fetch("/api/googlecalendar", {
+  const response = await fetch("/api/calendar", {
     method: "GET",
     headers: { "Content-Type": "application/json" },
     credentials: "include",
@@ -30,7 +30,7 @@ export const deleteCalendarEvent = async ({
   calendarId?: string;
 }) => {
   const params = new URLSearchParams({ id, calendarId });
-  const response = await fetch(`/api/googlecalendar?${params}`, {
+  const response = await fetch(`/api/calendar?${params}`, {
     method: "DELETE",
     credentials: "include",
   });
@@ -55,7 +55,7 @@ export const createCalendarEvent = async ({
   startDateTime,
   endDateTime,
 }: CreateEventPayload) => {
-  const response = await fetch("/api/googlecalendar", {
+  const response = await fetch("/api/calendar", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     credentials: "include",

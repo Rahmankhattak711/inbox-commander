@@ -3,6 +3,7 @@ import { corsair } from "../../corsair";
 import { prisma } from "./prisma";
 
 const GOOGLE_CALENDAR_SCOPE = "https://www.googleapis.com/auth/calendar";
+const GOOGLE_GMAIL_SCOPE = "https://www.googleapis.com/auth/gmail.compose";
 
 async function ensureIntegrationCredentials() {
   const envClientId = process.env.GOOGLE_CLIENT_ID;
@@ -18,11 +19,19 @@ async function ensureIntegrationCredentials() {
         client_id: envClientId,
         client_secret: envClientSecret,
       },
+      gmail: {
+        client_id: envClientId,
+        client_secret: envClientSecret,
+      },
     },
   });
 }
 
-async function syncUserGoogleTokens(userId: string) {
+async function syncUserGoogleTokens(
+  userId: string,
+  plugin: "googlecalendar" | "gmail",
+  requiredScope?: string,
+) {
   const account = await prisma.account.findFirst({
     where: { userId, providerId: "google" },
   });
@@ -34,18 +43,19 @@ async function syncUserGoogleTokens(userId: string) {
   }
 
   if (
+    requiredScope &&
     account.scope &&
-    !account.scope.includes(GOOGLE_CALENDAR_SCOPE)
+    !account.scope.includes(requiredScope)
   ) {
     throw new Error(
-      "Google Calendar access is not granted. Sign out and sign in again to allow calendar permissions.",
+      `Google ${plugin === "gmail" ? "Gmail" : "Calendar"} access is not granted. Sign out and sign in again to allow ${plugin === "gmail" ? "Gmail" : "Calendar"} permissions.`,
     );
   }
 
   await setupCorsair(corsair, {
     tenantId: userId,
     credentials: {
-      googlecalendar: {
+      [plugin]: {
         access_token: account.accessToken,
         ...(account.refreshToken
           ? { refresh_token: account.refreshToken }
@@ -57,6 +67,12 @@ async function syncUserGoogleTokens(userId: string) {
 
 export async function getAuthenticatedCorsairTenant(userId: string) {
   await ensureIntegrationCredentials();
-  await syncUserGoogleTokens(userId);
+  await syncUserGoogleTokens(userId, "googlecalendar", GOOGLE_CALENDAR_SCOPE);
+  return corsair.withTenant(userId);
+}
+
+export async function getAuthenticatedGmailTenant(userId: string) {
+  await ensureIntegrationCredentials();
+  await syncUserGoogleTokens(userId, "gmail", GOOGLE_GMAIL_SCOPE);
   return corsair.withTenant(userId);
 }
