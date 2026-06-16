@@ -92,7 +92,7 @@ const tiers = [
     price: "45",
     desc: "Advanced terminal access for hyper-productive operators and builders.",
     features: [
-      "5 Connected Workspaces",
+      "20 Connected Workspaces",
       "Priority Corsair Engine Routing",
       "Vim Keyboard Macro Bindings",
       "AI Context Autocomplete",
