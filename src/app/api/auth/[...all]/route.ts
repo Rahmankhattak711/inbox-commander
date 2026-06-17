@@ -20,9 +20,10 @@ function addCorsHeaders(response: Response, request: Request) {
   if (origin) {
     response.headers.set("Access-Control-Allow-Origin", origin);
     response.headers.set("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+    const requested = request.headers.get("access-control-request-headers");
     response.headers.set(
       "Access-Control-Allow-Headers",
-      "Content-Type, Authorization",
+      requested ?? "Content-Type, Authorization, X-Requested-With",
     );
     response.headers.set("Access-Control-Allow-Credentials", "true");
   }
