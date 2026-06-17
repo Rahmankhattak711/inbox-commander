@@ -5,6 +5,12 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { authClient } from "@/lib/auth-client";
 
+// Shared focus/blur styles for consistent input borders
+const focusStyle = (e: React.FocusEvent<HTMLInputElement>) =>
+  (e.currentTarget.style.borderColor = "rgba(200,241,53,0.4)");
+const blurStyle = (e: React.FocusEvent<HTMLInputElement>) =>
+  (e.currentTarget.style.borderColor = "var(--border)");
+
 export default function SignupPage() {
   const router = useRouter();
   const [name, setName] = useState("");
@@ -13,6 +19,7 @@ export default function SignupPage() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [isGoogleLoading, setIsGoogleLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -44,10 +51,15 @@ export default function SignupPage() {
     }
   };
 
-  const focusStyle = (e: React.FocusEvent<HTMLInputElement>) =>
-    (e.currentTarget.style.borderColor = "rgba(200,241,53,0.4)");
-  const blurStyle = (e: React.FocusEvent<HTMLInputElement>) =>
-    (e.currentTarget.style.borderColor = "var(--border)");
+  const handleGoogleLogin = async () => {
+    setIsGoogleLoading(true);
+    try {
+      await authClient.signIn.social({ provider: "google", callbackURL: "/dashboard" });
+    } catch {
+      setError("Failed to initiate Google sign-in.");
+      setIsGoogleLoading(false);
+    }
+  };
 
   return (
     <div
@@ -149,6 +161,35 @@ export default function SignupPage() {
             ) : "Register Account"}
           </button>
         </form>
+
+        {/* Divider */}
+        <div className="flex items-center gap-4">
+          <div className="flex-1 h-px" style={{ background: "var(--border)" }} />
+          <span className="text-[9px] font-bold tracking-widest uppercase" style={{ color: "var(--text-muted)" }}>or</span>
+          <div className="flex-1 h-px" style={{ background: "var(--border)" }} />
+        </div>
+
+        {/* Google Signup */}
+        <button
+          onClick={handleGoogleLogin} disabled={isGoogleLoading}
+          className="w-full flex items-center justify-center gap-3 py-3.5 rounded-xl text-xs font-semibold transition-all active:scale-[0.98] disabled:opacity-50"
+          style={{ background: "#fff", color: "#080d05" }}
+        >
+          {isGoogleLoading ? (
+            <svg className="animate-spin h-4 w-4 text-gray-600" viewBox="0 0 24 24" fill="none">
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+            </svg>
+          ) : (
+            <svg className="w-4 h-4" viewBox="0 0 24 24">
+              <path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v3.92h6.69a5.74 5.74 0 0 1-2.5 3.77v3.13h3.99c2.34-2.16 3.68-5.32 3.68-8.75z"/>
+              <path fill="#34A853" d="M12 24c3.24 0 5.97-1.08 7.96-2.91l-3.99-3.13c-1.11.75-2.53 1.19-3.97 1.19-3.05 0-5.64-2.06-6.57-4.83H1.42v3.23C3.4 21.6 7.43 24 12 24z"/>
+              <path fill="#FBBC05" d="M5.43 14.32a7.12 7.12 0 0 1 0-4.64V6.45H1.42a11.96 11.96 0 0 0 0 11.1l4.01-3.23z"/>
+              <path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.43 0 3.4 2.4 1.42 6.45l4.01 3.23c.93-2.77 3.52-4.83 6.57-4.83z"/>
+            </svg>
+          )}
+          {isGoogleLoading ? "Redirecting..." : "Sign up with Google"}
+        </button>
 
         <p className="text-center text-[10px]" style={{ color: "var(--text-secondary)" }}>
           Already have an account?{" "}
