@@ -1,46 +1,34 @@
 import {
-  createGmailDraft,
-  deleteGmailDraft,
-  getGmailDrafts,
+  getSentEmails,
+  sendDirectEmail,
 } from "@/services/gmail-api";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
-export const DRAFTS_QUERY_KEY = ["gmail-drafts"] as const;
+export const SENT_EMAILS_QUERY_KEY = ["gmail-sent"] as const;
 
 export function useGmailDraft() {
   const queryClient = useQueryClient();
 
-  const draftsQuery = useQuery({
-    queryKey: DRAFTS_QUERY_KEY,
-    queryFn: getGmailDrafts,
+  const sentQuery = useQuery({
+    queryKey: SENT_EMAILS_QUERY_KEY,
+    queryFn: getSentEmails,
   });
 
-  const createMutation = useMutation({
-    mutationFn: createGmailDraft,
+  const sendDirectMutation = useMutation({
+    mutationFn: sendDirectEmail,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: DRAFTS_QUERY_KEY });
-    },
-  });
-
-  const deleteMutation = useMutation({
-    mutationFn: deleteGmailDraft,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: DRAFTS_QUERY_KEY });
+      queryClient.invalidateQueries({ queryKey: SENT_EMAILS_QUERY_KEY });
     },
   });
 
   return {
-    drafts: draftsQuery.data?.drafts ?? [],
-    isFetching: draftsQuery.isLoading,
-    fetchError: draftsQuery.error,
-    refetchDrafts: draftsQuery.refetch,
+    emails: sentQuery.data?.emails ?? [],
+    isFetching: sentQuery.isLoading,
+    fetchError: sentQuery.error,
+    refetchEmails: sentQuery.refetch,
 
-    createDraft: createMutation.mutate,
-    isCreating: createMutation.isPending,
-    createError: createMutation.error,
-
-    deleteDraft: deleteMutation.mutate,
-    isDeleting: deleteMutation.isPending,
-    deleteError: deleteMutation.error,
+    sendDirect: sendDirectMutation.mutate,
+    isSendingDirect: sendDirectMutation.isPending,
+    sendDirectError: sendDirectMutation.error,
   };
 }
