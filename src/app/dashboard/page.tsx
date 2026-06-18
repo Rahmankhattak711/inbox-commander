@@ -19,7 +19,6 @@ export default function Dashboard() {
 
   const user = session?.data?.user;
 
-  // Compute live stats
   const today = new Date();
   const todayKey = today.toISOString().split("T")[0];
 
@@ -524,29 +523,6 @@ export default function Dashboard() {
           </div>
         </div>
       </div>
-
-      {/* Chat Module — full width */}
-      {/* <div className="space-y-4">
-        <div className="flex items-center gap-3">
-          <h3 className="text-[9px] font-extrabold uppercase tracking-widest font-mono" style={{ color: "var(--text-secondary)" }}>
-            AI Commander
-          </h3>
-          <div className="flex-1 h-px" style={{ background: "var(--border)" }} />
-          <Link
-            href="/chat"
-            className="text-[9px] font-bold uppercase tracking-widest transition hover:opacity-80"
-            style={{ color: "var(--lime)" }}
-          >
-            Open Full View →
-          </Link>
-        </div>
-        <div
-          className="rounded-2xl overflow-hidden"
-          style={{ border: "1px solid var(--border)" }}
-        >
-          <Chat />
-        </div>
-      </div> */}
     </div>
   );
 }
