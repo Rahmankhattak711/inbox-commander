@@ -1,5 +1,11 @@
-import { CalendarEvent } from "@/types";
+import type { CalendarEvent } from "@/types";
 import { formatTime } from "../utils";
+
+type GoogleCalendarEvent = {
+  id: string;
+  summary: string;
+  start: { dateTime: string };
+};
 
 export const fetchCalendarEvents = async (): Promise<CalendarEvent[]> => {
   const response = await fetch("/api/calendar", {
@@ -13,7 +19,7 @@ export const fetchCalendarEvents = async (): Promise<CalendarEvent[]> => {
     throw new Error(result.error || "Unable to fetch events.");
   }
 
-  return result.events.map((event: any) => ({
+  return result.events.map((event: GoogleCalendarEvent) => ({
     id: event.id,
     title: event.summary,
     date: event.start.dateTime.split("T")[0],
@@ -55,6 +61,7 @@ export const createCalendarEvent = async ({
   startDateTime,
   endDateTime,
 }: CreateEventPayload) => {
+  const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
   const response = await fetch("/api/calendar", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -63,8 +70,8 @@ export const createCalendarEvent = async ({
       calendarId: "primary",
       event: {
         summary,
-        start: { dateTime: startDateTime },
-        end: { dateTime: endDateTime },
+        start: { dateTime: new Date(startDateTime).toISOString(), timeZone },
+        end: { dateTime: new Date(endDateTime).toISOString(), timeZone },
       },
     }),
   });
