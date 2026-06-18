@@ -2,6 +2,10 @@
 
 Inbox Commander is a high-density, keyboard-first command center for orchestrating your Google Workspace. Built on top of the ultra-fast **Corsair** integration platform, it brings Gmail draft management and Google Calendar scheduling into a unified, zero-bloat console interface.
 
+## ✨ Latest Update
+
+The landing page has been refreshed with polished micro-animations, subtle hover motion, and a more immersive hero experience. These updates improve the first impression while keeping the high-density terminal style intact.
+
 ---
 
 ## 🚀 Key Features
@@ -16,13 +20,14 @@ Inbox Commander is a high-density, keyboard-first command center for orchestrati
 ## 🛠️ Tech Stack & Architecture
 
 ### Core Tech Stack
-* **Framework**: [Next.js 16](https://nextjs.org/) (App Router, React 19)
-* **Styling**: [Tailwind CSS v4](https://tailwindcss.com/) & CSS custom properties
-* **Auth**: [Better Auth v1](https://www.better-auth.com/) (Google OAuth & Email/Password login)
-* **Database & ORM**: PostgreSQL via [Prisma Client](https://www.prisma.io/)
-* **Integrations**: [Corsair Engine](https://github.com/corsair-dev) (`@corsair-dev/gmail`, `@corsair-dev/googlecalendar`)
-* **Data Fetching**: [TanStack React Query v5](https://tanstack.com/query/latest)
-* **Linting & Formatting**: [Biome](https://biomejs.dev/)
+
+- **Framework**: [Next.js 16](https://nextjs.org/) (App Router, React 19)
+- **Styling**: [Tailwind CSS v4](https://tailwindcss.com/) & CSS custom properties
+- **Auth**: [Better Auth v1](https://www.better-auth.com/) (Google OAuth & Email/Password login)
+- **Database & ORM**: PostgreSQL via [Prisma Client](https://www.prisma.io/)
+- **Integrations**: [Corsair Engine](https://github.com/corsair-dev) (`@corsair-dev/gmail`, `@corsair-dev/googlecalendar`)
+- **Data Fetching**: [TanStack React Query v5](https://tanstack.com/query/latest)
+- **Linting & Formatting**: [Biome](https://biomejs.dev/)
 
 ---
 
@@ -53,6 +58,7 @@ Inbox Commander is a high-density, keyboard-first command center for orchestrati
 ## ⚙️ Database Schema & Corsair Integration
 
 The PostgreSQL database (configured through [prisma/schema.prisma](file:///c:/Users/Rahman%20ullah/Documents/inbox-commander/prisma/schema.prisma)) bridges user profiles with Google token isolation:
+
 - **Core User Auth**: `User`, `Session`, `Account`, and `Verification` schemas mapping to Better Auth specs.
 - **Corsair Integrations**:
   - `CorsairIntegration`: Stores configured integrations (Gmail, Google Calendar).
@@ -64,11 +70,13 @@ The PostgreSQL database (configured through [prisma/schema.prisma](file:///c:/Us
 ## 🏁 Getting Started
 
 ### 1. Prerequisites
+
 - **Node.js** (v18+)
 - **pnpm** (preferred) or npm
 - **PostgreSQL Database** running locally or in the cloud.
 
 ### 2. Environment Setup
+
 Create a `.env` file in the root directory and configure the following:
 
 ```env
@@ -89,27 +97,32 @@ GOOGLE_CLIENT_SECRET="your-google-oauth-client-secret"
 > Make sure your Google OAuth credential has authorized redirect URIs containing `http://localhost:3000/api/auth/callback/google` and access scopes requested for **Gmail (modify, labels, compose, send)** and **Google Calendar**.
 
 ### 3. Installation & Run
+
 Install dependencies:
+
 ```bash
 pnpm install
 ```
 
 Generate Prisma Client and push schemas:
+
 ```bash
 pnpm prisma db push
 ```
 
 Start the development server:
+
 ```bash
 pnpm dev
 ```
+
 Open [http://localhost:3000](http://localhost:3000) to view the Inbox Commander dashboard.
 
 ---
 
 ## 🧼 Code Quality & Formatting
+
 We use [Biome](https://biomejs.dev/) for fast linting and code formatting:
 
 - **Lint checks**: `pnpm lint`
 - **Format code**: `pnpm format`
-
