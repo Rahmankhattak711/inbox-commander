@@ -1,83 +1,132 @@
 import { openrouter } from "@/lib/openrouter";
 
+interface CalendarAction {
+  action: "create_calendar_event";
+  title: string;
+  startDateTime: string;
+  endDateTime: string;
+}
+
+interface EmailAction {
+  action: "create_email";
+  to: string;
+  subject: string;
+  body: string;
+}
+
+interface ChatAction {
+  action: "chat_reply";
+  message: string;
+}
+
+type AssistantAction = CalendarAction | EmailAction | ChatAction;
+
 export async function POST(req: Request) {
-  const { message } = await req.json();
-
-  const now = new Date();
-  const currentDateTimeStr = now.toLocaleString("en-US", {
-    weekday: "long",
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-    hour: "numeric",
-    minute: "2-digit",
-    second: "2-digit",
-    timeZoneName: "short",
-  });
-
-  const completion = await openrouter.chat.completions.create({
-    model: "x-ai/grok-4.3",
-    messages: [
-      {
-        role: "system",
-        content: `You are an AI productivity assistant like Superhuman.
-You understand user intent and classify actions.
-
-Supported actions:
-1. create_email
-2. create_calendar_event
-3. chat_reply
-
-Current Date and Time reference: ${currentDateTimeStr} (Use this exact reference when interpreting relative time expressions such as "tomorrow", "next Monday at 3 PM", "next week", etc.).
-
-RULES:
-- If user wants to send, draft, write, or compose an email → respond ONLY in JSON:
-  {
-    "action": "create_email",
-    "to": "recipient email if mentioned (otherwise empty string)",
-    "subject": "appropriate subject line",
-    "body": "professional, full email body text"
-  }
-
-- If user wants to schedule, book, create a meeting, or set a calendar event → respond ONLY in JSON. Generate startDateTime and endDateTime in standard ISO 8601 format (YYYY-MM-DDTHH:mm:ss). If no duration is specified, assume the event lasts for exactly 1 hour:
-  {
-    "action": "create_calendar_event",
-    "title": "meeting or event title",
-    "startDateTime": "calculated start ISO datetime (YYYY-MM-DDTHH:mm:ss)",
-    "endDateTime": "calculated end ISO datetime (YYYY-MM-DDTHH:mm:ss)"
-  }
-
-- If the user is chatting, asking questions, or making casual conversation → respond ONLY in JSON:
-  {
-    "action": "chat_reply",
-    "message": "your helpful response message"
-  }
-
-NEVER return normal text.
-ONLY return valid JSON. No Markdown formatting around the JSON object. Just return raw JSON.`,
-      },
-      {
-        role: "user",
-        content: message,
-      },
-    ],
-    temperature: 0.2,
-    max_tokens: 1000,
-  });
-
-  let raw = completion.choices[0].message.content || "";
-
-  raw = raw.replace(/^```json\s*/i, "").replace(/```\s*$/, "").trim();
-
-  let parsed;
   try {
-    parsed = JSON.parse(raw || "{}");
-  } catch {
-    parsed = {
-      action: "chat_reply",
-      message: raw,
-    };
-  }
+    const { message } = await req.json();
 
-  return Response.json(parsed);
+    if (!message || typeof message !== "string") {
+      return Response.json([{
+        action: "chat_reply",
+        message: "Invalid request: message is required."
+      }]);
+    }
+
+    const now = new Date();
+    const currentDateTimeStr = now.toLocaleString("en-US", {
+      weekday: "long",
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+      hour: "numeric",
+      minute: "2-digit",
+      timeZoneName: "short",
+    });
+
+    const completion = await openrouter.chat.completions.create({
+      model: "x-ai/grok-4.3",
+      messages: [
+        {
+          role: "system",
+          content: `You are a precise productivity assistant that can perform MULTIPLE actions in one response.
+
+Current Date and Time: ${currentDateTimeStr}
+
+CRITICAL RULES — NEVER VIOLATE:
+- You MUST respond with ONLY a valid JSON array [] — no explanations, no markdown, no extra text.
+- Always return an array, even if there's only one action.
+- If the user asks for multiple things, return ALL of them in the array.
+- Detect and execute every action mentioned.
+
+AVAILABLE ACTIONS:
+1. Calendar Event:
+   {"action": "create_calendar_event", "title": string, "startDateTime": "YYYY-MM-DDTHH:mm:ss", "endDateTime": "YYYY-MM-DDTHH:mm:ss"}
+
+2. Email:
+   {"action": "create_email", "to": string, "subject": string, "body": string}
+
+3. Simple reply:
+   {"action": "chat_reply", "message": string}
+
+INSTRUCTIONS:
+- Default meeting duration: 60 minutes.
+- When user says "book a meeting" + "send email", you MUST output BOTH actions.
+- Be specific and professional in titles, subjects, and email bodies.
+- Use reasonable defaults if details are missing.
+- Always output valid JSON array.`.trim(),
+        },
+        { role: "user", content: message },
+      ],
+      temperature: 0.1,
+      max_tokens: 1500,
+    });
+
+    let raw = (completion.choices[0]?.message?.content || "").trim();
+
+     raw = raw
+      .replace(/^```(?:json)?\s*/i, "")
+      .replace(/```\s*$/, "")
+      .trim();
+
+     const jsonStart = raw.indexOf("[");
+    const jsonEnd = raw.lastIndexOf("]") + 1;
+
+    if (jsonStart !== -1 && jsonEnd > jsonStart) {
+      raw = raw.substring(jsonStart, jsonEnd);
+    }
+
+    let parsed: AssistantAction[];
+
+    try {
+      const data = JSON.parse(raw);
+      parsed = Array.isArray(data) ? data : [data];
+    } catch (e) {
+      console.error("JSON Parse Error. Raw:", raw);
+      parsed = [{
+        action: "chat_reply",
+        message: "Sorry, I couldn't understand your request. Please try again."
+      }];
+    }
+
+     parsed = parsed.filter((action: any) =>
+      action &&
+      typeof action === "object" &&
+      ["create_calendar_event", "create_email", "chat_reply"].includes(action.action)
+    );
+
+    if (parsed.length === 0) {
+      parsed = [{
+        action: "chat_reply",
+        message: "No valid actions could be extracted."
+      }];
+    }
+
+    return Response.json(parsed);
+  } catch (error) {
+    console.error("API Error:", error);
+    return Response.json([{
+      action: "chat_reply",
+      message: "An internal error occurred. Please try again."
+    }]);
+  }
 }

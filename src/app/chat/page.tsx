@@ -19,9 +19,14 @@ type Message = {
   id: string;
   role: "user" | "assistant";
   content?: string;
-  action?: MessageAction;
-  status?: "pending" | "success" | "error";
-  statusMessage?: string;
+  actions?: MessageAction[];
+  actionStatuses?: Record<
+    number,
+    {
+      status?: "pending" | "success" | "error";
+      statusMessage?: string;
+    }
+  >;
 };
 
 function encodeEmail({
@@ -45,8 +50,10 @@ function encodeEmail({
   return btoa(bin).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
 }
 
-// Sub-component for Email Composer Card
+// Email Composer Card
 function EmailComposerCard({
+  actionIndex,
+  messageId,
   to: initialTo,
   subject: initialSubject,
   body: initialBody,
@@ -54,12 +61,20 @@ function EmailComposerCard({
   statusMessage,
   onSend,
 }: {
+  actionIndex: number;
+  messageId: string;
   to: string;
   subject: string;
   body: string;
   status?: "pending" | "success" | "error";
   statusMessage?: string;
-  onSend: (to: string, subject: string, body: string) => void;
+  onSend: (
+    messageId: string,
+    actionIndex: number,
+    to: string,
+    subject: string,
+    body: string,
+  ) => void;
 }) {
   const [to, setTo] = useState(initialTo);
   const [subject, setSubject] = useState(initialSubject);
@@ -67,9 +82,7 @@ function EmailComposerCard({
   const [isEditing, setIsEditing] = useState(status !== "success");
 
   useEffect(() => {
-    if (status === "success") {
-      setIsEditing(false);
-    }
+    if (status === "success") setIsEditing(false);
   }, [status]);
 
   return (
@@ -164,9 +177,7 @@ function EmailComposerCard({
       {statusMessage && (
         <p
           className="text-[10px] font-mono"
-          style={{
-            color: status === "error" ? "#f87171" : "var(--lime)",
-          }}
+          style={{ color: status === "error" ? "#f87171" : "var(--lime)" }}
         >
           {statusMessage}
         </p>
@@ -176,13 +187,10 @@ function EmailComposerCard({
         <div className="flex gap-2">
           {isEditing ? (
             <button
-              onClick={() => onSend(to, subject, body)}
+              onClick={() => onSend(messageId, actionIndex, to, subject, body)}
               disabled={status === "pending" || !to || !subject || !body}
               className="flex-1 py-2.5 text-[10px] font-extrabold uppercase tracking-widest rounded-lg transition active:scale-[0.98] disabled:opacity-50 cursor-pointer"
-              style={{
-                background: "var(--lime)",
-                color: "var(--bg-base)",
-              }}
+              style={{ background: "var(--lime)", color: "var(--bg-base)" }}
             >
               {status === "pending" ? "Sending..." : "Send Email"}
             </button>
@@ -205,8 +213,10 @@ function EmailComposerCard({
   );
 }
 
-// Sub-component for Calendar Event Composer Card
+// Calendar Composer Card
 function CalendarComposerCard({
+  actionIndex,
+  messageId,
   title: initialTitle,
   startDateTime: initialStart,
   endDateTime: initialEnd,
@@ -214,12 +224,20 @@ function CalendarComposerCard({
   statusMessage,
   onSave,
 }: {
+  actionIndex: number;
+  messageId: string;
   title: string;
   startDateTime: string;
   endDateTime: string;
   status?: "pending" | "success" | "error";
   statusMessage?: string;
-  onSave: (title: string, startDateTime: string, endDateTime: string) => void;
+  onSave: (
+    messageId: string,
+    actionIndex: number,
+    title: string,
+    start: string,
+    end: string,
+  ) => void;
 }) {
   const [title, setTitle] = useState(initialTitle);
   const [start, setStart] = useState(initialStart);
@@ -227,15 +245,11 @@ function CalendarComposerCard({
   const [isEditing, setIsEditing] = useState(status !== "success");
 
   useEffect(() => {
-    if (status === "success") {
-      setIsEditing(false);
-    }
+    if (status === "success") setIsEditing(false);
   }, [status]);
 
-  const formatInputDateTime = (isoStr: string) => {
-    if (!isoStr) return "";
-    return isoStr.substring(0, 16);
-  };
+  const formatInputDateTime = (isoStr: string) =>
+    !isoStr ? "" : isoStr.substring(0, 16);
 
   return (
     <div
@@ -331,9 +345,7 @@ function CalendarComposerCard({
       {statusMessage && (
         <p
           className="text-[10px] font-mono"
-          style={{
-            color: status === "error" ? "#f87171" : "var(--lime)",
-          }}
+          style={{ color: status === "error" ? "#f87171" : "var(--lime)" }}
         >
           {statusMessage}
         </p>
@@ -343,13 +355,10 @@ function CalendarComposerCard({
         <div className="flex gap-2">
           {isEditing ? (
             <button
-              onClick={() => onSave(title, start, end)}
+              onClick={() => onSave(messageId, actionIndex, title, start, end)}
               disabled={status === "pending" || !title || !start || !end}
               className="flex-1 py-2.5 text-[10px] font-extrabold uppercase tracking-widest rounded-lg transition active:scale-[0.98] disabled:opacity-50 cursor-pointer"
-              style={{
-                background: "var(--lime)",
-                color: "var(--bg-base)",
-              }}
+              style={{ background: "var(--lime)", color: "var(--bg-base)" }}
             >
               {status === "pending" ? "Scheduling..." : "Schedule Event"}
             </button>
@@ -379,12 +388,12 @@ export default function Chat() {
 
   const { sendDirect } = useGmailDraft();
   const { createEvent } = useCalendarEvents();
-
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const suggestions = [
+    "Book a meeting with ghoufran next Monday at 10 AM and also send the email to ghoufran111@gmail.com",
     "Send a project update to the engineering team",
-    "Book a meeting with John next Monday at 10 AM",
+    "Schedule a 30-minute sync with John tomorrow at 11 AM",
     "Review my inbox and prepare my schedule for today",
   ];
 
@@ -394,19 +403,15 @@ export default function Chat() {
 
   useEffect(() => {
     scrollToBottom();
-  }, [messages, loading]);
+  }, [messages]);
 
   async function sendMessage(textToSend?: string) {
     const text = textToSend || input;
     if (!text.trim() || loading) return;
 
-    if (!textToSend) {
-      setInput("");
-    }
+    if (!textToSend) setInput("");
 
-    const userMessageId = Date.now().toString() + "-user";
-    const assistantMessageId = Date.now().toString() + "-assistant";
-
+    const userMessageId = `user-${Date.now()}`;
     setMessages((prev) => [
       ...prev,
       { id: userMessageId, role: "user", content: text },
@@ -417,76 +422,50 @@ export default function Chat() {
     try {
       const response = await fetch("/api/chat", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          message: text,
-        }),
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message: text }),
       });
 
-      if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(errorText);
-      }
+      if (!response.ok) throw new Error("Failed to connect to AI");
 
       const parsed = await response.json();
 
-      let parsedAction: MessageAction = {
-        type: "chat_reply",
-        data: { message: "Failed to resolve action." },
-      };
+      let actions: MessageAction[] = [];
 
-      if (parsed && parsed.action) {
-        if (parsed.action === "create_email") {
-          parsedAction = {
-            type: "create_email",
-            data: {
-              to: parsed.to || "",
-              subject: parsed.subject || "",
-              body: parsed.body || "",
-            },
-          };
-        } else if (parsed.action === "create_calendar_event") {
-          parsedAction = {
-            type: "create_calendar_event",
-            data: {
-              title: parsed.title || "",
-              startDateTime: parsed.startDateTime || "",
-              endDateTime: parsed.endDateTime || "",
-            },
-          };
-        } else {
-          parsedAction = {
-            type: "chat_reply",
-            data: {
-              message: parsed.message || "Command processed.",
-            },
-          };
-        }
+      if (Array.isArray(parsed)) {
+        actions = parsed.map((item: any) => convertToMessageAction(item));
+      } else if (parsed) {
+        actions = [convertToMessageAction(parsed)];
       }
 
+      if (actions.length === 0) {
+        actions = [
+          {
+            type: "chat_reply",
+            data: { message: "No actions could be extracted." },
+          },
+        ];
+      }
+
+      const assistantMessageId = `assistant-${Date.now()}`;
+
       setMessages((prev) => [
         ...prev,
-        {
-          id: assistantMessageId,
-          role: "assistant",
-          action: parsedAction,
-        },
+        { id: assistantMessageId, role: "assistant", actions },
       ]);
     } catch (error: any) {
-      console.error(error);
+      const assistantMessageId = `assistant-${Date.now()}`;
       setMessages((prev) => [
         ...prev,
         {
           id: assistantMessageId,
           role: "assistant",
-          action: {
-            type: "chat_reply",
-            data: {
-              message: error?.message || "Something went wrong (API error).",
+          actions: [
+            {
+              type: "chat_reply",
+              data: { message: error?.message || "Something went wrong." },
             },
-          },
+          ],
         },
       ]);
     } finally {
@@ -494,78 +473,100 @@ export default function Chat() {
     }
   }
 
+  function convertToMessageAction(parsed: any): MessageAction {
+    if (parsed.action === "create_email" || parsed.type === "create_email") {
+      return {
+        type: "create_email",
+        data: {
+          to: parsed.to || parsed.data?.to || "",
+          subject: parsed.subject || parsed.data?.subject || "",
+          body: parsed.body || parsed.data?.body || "",
+        },
+      };
+    }
+    if (
+      parsed.action === "create_calendar_event" ||
+      parsed.type === "create_calendar_event"
+    ) {
+      return {
+        type: "create_calendar_event",
+        data: {
+          title: parsed.title || parsed.data?.title || "",
+          startDateTime:
+            parsed.startDateTime || parsed.data?.startDateTime || "",
+          endDateTime: parsed.endDateTime || parsed.data?.endDateTime || "",
+        },
+      };
+    }
+    return {
+      type: "chat_reply",
+      data: { message: parsed.message || "Command processed." },
+    };
+  }
+
+  const updateActionStatus = (
+    messageId: string,
+    actionIndex: number,
+    status: "pending" | "success" | "error",
+    statusMessage?: string,
+  ) => {
+    setMessages((prev) =>
+      prev.map((msg) =>
+        msg.id === messageId
+          ? {
+              ...msg,
+              actionStatuses: {
+                ...(msg.actionStatuses || {}),
+                [actionIndex]: { status, statusMessage },
+              },
+            }
+          : msg,
+      ),
+    );
+  };
+
   const handleSendEmail = (
     messageId: string,
+    actionIndex: number,
     to: string,
     subject: string,
     body: string,
   ) => {
-    // Set message to pending status
-    setMessages((prev) =>
-      prev.map((msg) =>
-        msg.id === messageId
-          ? { ...msg, status: "pending", statusMessage: "Sending email..." }
-          : msg,
-      ),
-    );
-
+    updateActionStatus(messageId, actionIndex, "pending", "Sending email...");
     sendDirect(
       { raw: encodeEmail({ to, subject, body }) },
       {
-        onSuccess: () => {
-          setMessages((prev) =>
-            prev.map((msg) =>
-              msg.id === messageId
-                ? {
-                    ...msg,
-                    status: "success",
-                    statusMessage: "Email sent successfully!",
-                    action: {
-                      type: "create_email",
-                      data: { to, subject, body },
-                    },
-                  }
-                : msg,
-            ),
-          );
-        },
-        onError: (error: any) => {
-          setMessages((prev) =>
-            prev.map((msg) =>
-              msg.id === messageId
-                ? {
-                    ...msg,
-                    status: "error",
-                    statusMessage: error?.message || "Failed to send email.",
-                  }
-                : msg,
-            ),
-          );
-        },
+        onSuccess: () =>
+          updateActionStatus(
+            messageId,
+            actionIndex,
+            "success",
+            "Email sent successfully!",
+          ),
+        onError: (error: any) =>
+          updateActionStatus(
+            messageId,
+            actionIndex,
+            "error",
+            error?.message || "Failed to send email.",
+          ),
       },
     );
   };
 
   const handleScheduleEvent = (
     messageId: string,
+    actionIndex: number,
     title: string,
     startDateTime: string,
     endDateTime: string,
   ) => {
-    // Set message to pending status
-    setMessages((prev) =>
-      prev.map((msg) =>
-        msg.id === messageId
-          ? {
-              ...msg,
-              status: "pending",
-              statusMessage: "Scheduling event in Google Calendar...",
-            }
-          : msg,
-      ),
+    updateActionStatus(
+      messageId,
+      actionIndex,
+      "pending",
+      "Scheduling event...",
     );
-
-    // Standardize datetime formatting
     const formattedStart = new Date(startDateTime).toISOString();
     const formattedEnd = new Date(endDateTime).toISOString();
 
@@ -576,38 +577,20 @@ export default function Chat() {
         endDateTime: formattedEnd,
       },
       {
-        onSuccess: () => {
-          setMessages((prev) =>
-            prev.map((msg) =>
-              msg.id === messageId
-                ? {
-                    ...msg,
-                    status: "success",
-                    statusMessage:
-                      "Event scheduled in Google Calendar successfully!",
-                    action: {
-                      type: "create_calendar_event",
-                      data: { title, startDateTime, endDateTime },
-                    },
-                  }
-                : msg,
-            ),
-          );
-        },
-        onError: (error: any) => {
-          setMessages((prev) =>
-            prev.map((msg) =>
-              msg.id === messageId
-                ? {
-                    ...msg,
-                    status: "error",
-                    statusMessage:
-                      error?.message || "Failed to schedule event.",
-                  }
-                : msg,
-            ),
-          );
-        },
+        onSuccess: () =>
+          updateActionStatus(
+            messageId,
+            actionIndex,
+            "success",
+            "Event scheduled successfully!",
+          ),
+        onError: (error: any) =>
+          updateActionStatus(
+            messageId,
+            actionIndex,
+            "error",
+            error?.message || "Failed to schedule event.",
+          ),
       },
     );
   };
@@ -617,7 +600,7 @@ export default function Chat() {
       className="flex-1 flex flex-col h-full overflow-hidden antialiased"
       style={{ background: "var(--bg-base)", color: "var(--text-primary)" }}
     >
-      {/* Top Header */}
+      {/* Header */}
       <header
         className="px-8 py-6 flex justify-between items-center shrink-0"
         style={{ borderBottom: "1px solid var(--border)" }}
@@ -627,20 +610,16 @@ export default function Chat() {
             className="text-[9px] font-extrabold tracking-widest uppercase font-mono"
             style={{ color: "var(--lime)" }}
           >
-            Commander Agent
+            COMMANDER AGENT
           </span>
-          <h1
-            className="text-2xl font-extrabold tracking-tight mt-1"
-            style={{ color: "var(--text-primary)" }}
-          >
+          <h1 className="text-2xl font-extrabold tracking-tight mt-1">
             AI Assistant Chat
           </h1>
           <p
             className="text-xs mt-1"
             style={{ color: "var(--text-secondary)" }}
           >
-            Draft emails, schedule calendar events, and orchestrate actions in
-            real-time.
+            Multiple actions supported • Independent status
           </p>
         </div>
       </header>
@@ -648,59 +627,41 @@ export default function Chat() {
       {/* Chat Area */}
       <div className="flex-1 overflow-y-auto p-8 space-y-6">
         {messages.length === 0 && (
-          <div className="max-w-2xl mx-auto py-16 flex flex-col items-center justify-center text-center space-y-6">
+          <div className="max-w-2xl mx-auto py-16 flex flex-col items-center justify-center text-center space-y-8">
             <div
-              className="w-12 h-12 rounded-2xl flex items-center justify-center border"
+              className="w-16 h-16 rounded-2xl flex items-center justify-center border"
               style={{
                 background: "var(--lime-glow)",
-                borderColor: "rgba(200,241,53,0.2)",
+                borderColor: "rgba(200,241,53,0.3)",
               }}
             >
-              <svg
-                className="w-6 h-6"
-                style={{ color: "var(--lime)" }}
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
-                />
-              </svg>
+              <span className="text-4xl">🤖</span>
             </div>
-            <div className="space-y-2">
-              <h2
-                className="text-sm font-bold uppercase tracking-wider"
-                style={{ color: "var(--text-primary)" }}
-              >
-                Start Orchestrating Actions
+            <div className="space-y-3">
+              <h2 className="text-2xl font-bold tracking-tight">
+                Ready to take action?
               </h2>
               <p
-                className="text-xs max-w-sm"
+                className="text-sm max-w-md"
                 style={{ color: "var(--text-secondary)" }}
               >
-                Ask me to write emails, draft syncs, plan your schedule, or
-                simply chat to coordinate tasks.
+                I can handle multiple tasks at once (meetings + emails)
               </p>
             </div>
 
-            <div className="w-full max-w-md pt-4 space-y-2">
-              <p className="text-[9px] font-mono font-extrabold uppercase tracking-widest text-[var(--text-muted)] text-left px-1">
-                Try Suggestions
+            <div className="w-full max-w-lg">
+              <p className="text-[10px] font-mono font-extrabold uppercase tracking-widest text-[var(--text-muted)] mb-3 text-left">
+                Try these:
               </p>
-              <div className="flex flex-col gap-2">
+              <div className="grid gap-3">
                 {suggestions.map((sug, i) => (
                   <button
                     key={i}
                     onClick={() => sendMessage(sug)}
-                    className="w-full text-left p-3 rounded-xl border text-xs font-semibold hover:border-[var(--lime)]/30 hover:bg-[var(--lime-glow)] transition duration-200 cursor-pointer"
+                    className="w-full text-left p-4 rounded-2xl border text-sm hover:border-[var(--lime)]/50 hover:bg-[var(--lime-glow)]/10 transition-all"
                     style={{
                       background: "var(--bg-surface)",
                       borderColor: "var(--border)",
-                      color: "var(--text-primary)",
                     }}
                   >
                     {sug}
@@ -718,22 +679,12 @@ export default function Chat() {
               className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"} animate-in fade-in duration-200`}
             >
               <div className="max-w-2xl space-y-1">
-                {msg.role === "assistant" && (
-                  <span
-                    className="text-[9px] font-mono tracking-widest uppercase ml-1"
-                    style={{ color: "var(--text-muted)" }}
-                  >
-                    AI Commander
-                  </span>
-                )}
-                {msg.role === "user" && (
-                  <span
-                    className="text-[9px] font-mono tracking-widest uppercase mr-1 block text-right"
-                    style={{ color: "var(--text-muted)" }}
-                  >
-                    You
-                  </span>
-                )}
+                <span
+                  className={`text-[9px] font-mono tracking-widest uppercase ${msg.role === "user" ? "text-right block mr-1" : "ml-1"}`}
+                  style={{ color: "var(--text-muted)" }}
+                >
+                  {msg.role === "user" ? "You" : "AI Commander"}
+                </span>
 
                 {msg.role === "user" ? (
                   <div
@@ -747,45 +698,52 @@ export default function Chat() {
                     {msg.content}
                   </div>
                 ) : (
-                  <div>
-                    {msg.action?.type === "chat_reply" && (
-                      <div
-                        className="px-5 py-3 rounded-2xl text-xs leading-relaxed shadow-sm border"
-                        style={{
-                          background: "var(--bg-surface)",
-                          borderColor: "var(--border)",
-                          color: "var(--text-primary)",
-                        }}
-                      >
-                        {msg.action.data.message}
-                      </div>
-                    )}
+                  <div className="space-y-4">
+                    {msg.actions?.map((action, index) => {
+                      const actionStatus = msg.actionStatuses?.[index];
+                      return (
+                        <div key={index}>
+                          {action.type === "chat_reply" && (
+                            <div
+                              className="px-5 py-3 rounded-2xl text-xs leading-relaxed shadow-sm border"
+                              style={{
+                                background: "var(--bg-surface)",
+                                borderColor: "var(--border)",
+                                color: "var(--text-primary)",
+                              }}
+                            >
+                              {action.data.message}
+                            </div>
+                          )}
 
-                    {msg.action?.type === "create_email" && (
-                      <EmailComposerCard
-                        to={msg.action.data.to}
-                        subject={msg.action.data.subject}
-                        body={msg.action.data.body}
-                        status={msg.status}
-                        statusMessage={msg.statusMessage}
-                        onSend={(to, subject, body) =>
-                          handleSendEmail(msg.id, to, subject, body)
-                        }
-                      />
-                    )}
+                          {action.type === "create_email" && (
+                            <EmailComposerCard
+                              actionIndex={index}
+                              messageId={msg.id}
+                              to={action.data.to}
+                              subject={action.data.subject}
+                              body={action.data.body}
+                              status={actionStatus?.status}
+                              statusMessage={actionStatus?.statusMessage}
+                              onSend={handleSendEmail}
+                            />
+                          )}
 
-                    {msg.action?.type === "create_calendar_event" && (
-                      <CalendarComposerCard
-                        title={msg.action.data.title}
-                        startDateTime={msg.action.data.startDateTime}
-                        endDateTime={msg.action.data.endDateTime}
-                        status={msg.status}
-                        statusMessage={msg.statusMessage}
-                        onSave={(title, start, end) =>
-                          handleScheduleEvent(msg.id, title, start, end)
-                        }
-                      />
-                    )}
+                          {action.type === "create_calendar_event" && (
+                            <CalendarComposerCard
+                              actionIndex={index}
+                              messageId={msg.id}
+                              title={action.data.title}
+                              startDateTime={action.data.startDateTime}
+                              endDateTime={action.data.endDateTime}
+                              status={actionStatus?.status}
+                              statusMessage={actionStatus?.statusMessage}
+                              onSave={handleScheduleEvent}
+                            />
+                          )}
+                        </div>
+                      );
+                    })}
                   </div>
                 )}
               </div>
@@ -822,50 +780,25 @@ export default function Chat() {
             value={input}
             disabled={loading}
             onChange={(e) => setInput(e.target.value)}
-            placeholder='e.g., "Schedule Q3 planning tomorrow at 3 PM" or "Create a draft email to Alice"'
-            onKeyDown={(e) => {
-              if (e.key === "Enter" && !e.shiftKey) {
-                e.preventDefault();
-                sendMessage();
-              }
-            }}
+            placeholder='e.g., "Book a meeting with ghoufran next Monday at 10 AM and also send the email to ghoufran111@gmail.com"'
+            onKeyDown={(e) =>
+              e.key === "Enter" &&
+              !e.shiftKey &&
+              (e.preventDefault(), sendMessage())
+            }
             style={{
               background: "var(--bg-surface)",
               border: "1px solid var(--border)",
               color: "var(--text-primary)",
             }}
-            onFocus={(e) =>
-              (e.currentTarget.style.borderColor = "rgba(200, 241, 53, 0.4)")
-            }
-            onBlur={(e) =>
-              (e.currentTarget.style.borderColor = "var(--border)")
-            }
           />
-
           <button
             onClick={() => sendMessage()}
             disabled={loading || !input.trim()}
             className="px-6 py-3.5 rounded-xl text-xs font-extrabold uppercase tracking-widest transition duration-200 active:scale-[0.98] disabled:opacity-50 flex items-center gap-2 cursor-pointer"
-            style={{
-              background: "var(--lime)",
-              color: "var(--bg-base)",
-              boxShadow: "0 0 16px rgba(200,241,53,0.15)",
-            }}
+            style={{ background: "var(--lime)", color: "var(--bg-base)" }}
           >
-            <span>Send</span>
-            <svg
-              className="w-3.5 h-3.5"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2.5"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M14 5l7 7m0 0l-7 7m7-7H3"
-              />
-            </svg>
+            Send
           </button>
         </div>
       </div>
