@@ -46,3 +46,14 @@ input:-webkit-autofill:focus {
   -webkit-text-fill-color: #f0f5e8 !important;
   caret-color: #c8f135;
 }
+
+/* Make buttons use pointer cursor by default; show not-allowed when disabled */
+button,
+[role="button"] {
+  cursor: pointer;
+}
+
+button:disabled,
+[role="button"][aria-disabled="true"] {
+  cursor: not-allowed;
+}
