@@ -391,7 +391,7 @@ export default function Chat() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const suggestions = [
-    "Book a meeting with ghoufran next Monday at 10 AM and also send the email to ghoufran111@gmail.com",
+    "Book a meeting with John next Monday at 10 AM and also send the email to example@gmail.com",
     "Send a project update to the engineering team",
     "Schedule a 30-minute sync with John tomorrow at 11 AM",
     "Review my inbox and prepare my schedule for today",
