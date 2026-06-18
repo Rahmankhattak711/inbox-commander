@@ -526,7 +526,7 @@ export default function Dashboard() {
       </div>
 
       {/* Chat Module — full width */}
-      <div className="space-y-4">
+      {/* <div className="space-y-4">
         <div className="flex items-center gap-3">
           <h3 className="text-[9px] font-extrabold uppercase tracking-widest font-mono" style={{ color: "var(--text-secondary)" }}>
             AI Commander
@@ -546,7 +546,7 @@ export default function Dashboard() {
         >
           <Chat />
         </div>
-      </div>
+      </div> */}
     </div>
   );
 }
