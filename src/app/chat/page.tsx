@@ -5,8 +5,14 @@ import { useGmailDraft } from "@/hooks/useCreateGmailDraft";
 import { useCalendarEvents } from "@/hooks/useCalendarEvents";
 
 type MessageAction =
-  | { type: "create_email"; data: { to: string; subject: string; body: string } }
-  | { type: "create_calendar_event"; data: { title: string; startDateTime: string; endDateTime: string } }
+  | {
+      type: "create_email";
+      data: { to: string; subject: string; body: string };
+    }
+  | {
+      type: "create_calendar_event";
+      data: { title: string; startDateTime: string; endDateTime: string };
+    }
   | { type: "chat_reply"; data: { message: string } };
 
 type Message = {
@@ -18,7 +24,15 @@ type Message = {
   statusMessage?: string;
 };
 
-function encodeEmail({ to, subject, body }: { to: string; subject: string; body: string }) {
+function encodeEmail({
+  to,
+  subject,
+  body,
+}: {
+  to: string;
+  subject: string;
+  body: string;
+}) {
   const msg = [
     `To: ${to}`,
     `Subject: ${subject}`,
@@ -63,13 +77,24 @@ function EmailComposerCard({
       className="p-5 rounded-xl border mt-3 space-y-4 max-w-lg shadow-lg transition duration-200 animate-in fade-in zoom-in-95 duration-300"
       style={{
         background: "var(--bg-card)",
-        borderColor: status === "success" ? "rgba(200, 241, 53, 0.4)" : "var(--border)",
+        borderColor:
+          status === "success" ? "rgba(200, 241, 53, 0.4)" : "var(--border)",
       }}
     >
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <svg className="w-4 h-4 text-[var(--lime)]" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0a2 2 0 01-2 2H6a2 2 0 01-2-2m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-4a2 2 0 00-2 2v1a2 2 0 01-2 2h-2a2 2 0 01-2-2v-1a2 2 0 00-2-2H4" />
+          <svg
+            className="w-4 h-4 text-[var(--lime)]"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0a2 2 0 01-2 2H6a2 2 0 01-2-2m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-4a2 2 0 00-2 2v1a2 2 0 01-2 2h-2a2 2 0 01-2-2v-1a2 2 0 00-2-2H4"
+            />
           </svg>
           <span className="text-[10px] font-extrabold uppercase tracking-wider font-mono text-[var(--lime)]">
             Email Action Proposed
@@ -84,7 +109,9 @@ function EmailComposerCard({
 
       <div className="space-y-3">
         <div>
-          <label className="block text-[9px] font-extrabold uppercase tracking-widest text-[var(--text-secondary)] mb-1">To</label>
+          <label className="block text-[9px] font-extrabold uppercase tracking-widest text-[var(--text-secondary)] mb-1">
+            To
+          </label>
           <input
             type="email"
             value={to}
@@ -99,7 +126,9 @@ function EmailComposerCard({
           />
         </div>
         <div>
-          <label className="block text-[9px] font-extrabold uppercase tracking-widest text-[var(--text-secondary)] mb-1">Subject</label>
+          <label className="block text-[9px] font-extrabold uppercase tracking-widest text-[var(--text-secondary)] mb-1">
+            Subject
+          </label>
           <input
             type="text"
             value={subject}
@@ -114,7 +143,9 @@ function EmailComposerCard({
           />
         </div>
         <div>
-          <label className="block text-[9px] font-extrabold uppercase tracking-widest text-[var(--text-secondary)] mb-1">Body</label>
+          <label className="block text-[9px] font-extrabold uppercase tracking-widest text-[var(--text-secondary)] mb-1">
+            Body
+          </label>
           <textarea
             rows={4}
             value={body}
@@ -211,13 +242,24 @@ function CalendarComposerCard({
       className="p-5 rounded-xl border mt-3 space-y-4 max-w-lg shadow-lg transition duration-200 animate-in fade-in zoom-in-95 duration-300"
       style={{
         background: "var(--bg-card)",
-        borderColor: status === "success" ? "rgba(200, 241, 53, 0.4)" : "var(--border)",
+        borderColor:
+          status === "success" ? "rgba(200, 241, 53, 0.4)" : "var(--border)",
       }}
     >
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <svg className="w-4 h-4 text-[var(--lime)]" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+          <svg
+            className="w-4 h-4 text-[var(--lime)]"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+            />
           </svg>
           <span className="text-[10px] font-extrabold uppercase tracking-wider font-mono text-[var(--lime)]">
             Calendar Action Proposed
@@ -232,7 +274,9 @@ function CalendarComposerCard({
 
       <div className="space-y-3">
         <div>
-          <label className="block text-[9px] font-extrabold uppercase tracking-widest text-[var(--text-secondary)] mb-1">Event Title</label>
+          <label className="block text-[9px] font-extrabold uppercase tracking-widest text-[var(--text-secondary)] mb-1">
+            Event Title
+          </label>
           <input
             type="text"
             value={title}
@@ -248,7 +292,9 @@ function CalendarComposerCard({
         </div>
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <label className="block text-[9px] font-extrabold uppercase tracking-widest text-[var(--text-secondary)] mb-1">Start Time</label>
+            <label className="block text-[9px] font-extrabold uppercase tracking-widest text-[var(--text-secondary)] mb-1">
+              Start Time
+            </label>
             <input
               type="datetime-local"
               value={formatInputDateTime(start)}
@@ -263,7 +309,9 @@ function CalendarComposerCard({
             />
           </div>
           <div>
-            <label className="block text-[9px] font-extrabold uppercase tracking-widest text-[var(--text-secondary)] mb-1">End Time</label>
+            <label className="block text-[9px] font-extrabold uppercase tracking-widest text-[var(--text-secondary)] mb-1">
+              End Time
+            </label>
             <input
               type="datetime-local"
               value={formatInputDateTime(end)}
@@ -335,9 +383,9 @@ export default function Chat() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const suggestions = [
-    "Draft an email to John about Q3 plan",
-    "Schedule a sync with Sarah tomorrow at 11 AM",
-    "Casual chat: What commands do you support?",
+    "Send a project update to the engineering team",
+    "Book a meeting with John next Monday at 10 AM",
+    "Review my inbox and prepare my schedule for today",
   ];
 
   const scrollToBottom = () => {
@@ -384,7 +432,10 @@ export default function Chat() {
 
       const parsed = await response.json();
 
-      let parsedAction: MessageAction = { type: "chat_reply", data: { message: "Failed to resolve action." } };
+      let parsedAction: MessageAction = {
+        type: "chat_reply",
+        data: { message: "Failed to resolve action." },
+      };
 
       if (parsed && parsed.action) {
         if (parsed.action === "create_email") {
@@ -432,7 +483,9 @@ export default function Chat() {
           role: "assistant",
           action: {
             type: "chat_reply",
-            data: { message: error?.message || "Something went wrong (API error)." },
+            data: {
+              message: error?.message || "Something went wrong (API error).",
+            },
           },
         },
       ]);
@@ -441,14 +494,19 @@ export default function Chat() {
     }
   }
 
-  const handleSendEmail = (messageId: string, to: string, subject: string, body: string) => {
+  const handleSendEmail = (
+    messageId: string,
+    to: string,
+    subject: string,
+    body: string,
+  ) => {
     // Set message to pending status
     setMessages((prev) =>
       prev.map((msg) =>
         msg.id === messageId
           ? { ...msg, status: "pending", statusMessage: "Sending email..." }
-          : msg
-      )
+          : msg,
+      ),
     );
 
     sendDirect(
@@ -467,8 +525,8 @@ export default function Chat() {
                       data: { to, subject, body },
                     },
                   }
-                : msg
-            )
+                : msg,
+            ),
           );
         },
         onError: (error: any) => {
@@ -480,22 +538,31 @@ export default function Chat() {
                     status: "error",
                     statusMessage: error?.message || "Failed to send email.",
                   }
-                : msg
-            )
+                : msg,
+            ),
           );
         },
-      }
+      },
     );
   };
 
-  const handleScheduleEvent = (messageId: string, title: string, startDateTime: string, endDateTime: string) => {
+  const handleScheduleEvent = (
+    messageId: string,
+    title: string,
+    startDateTime: string,
+    endDateTime: string,
+  ) => {
     // Set message to pending status
     setMessages((prev) =>
       prev.map((msg) =>
         msg.id === messageId
-          ? { ...msg, status: "pending", statusMessage: "Scheduling event in Google Calendar..." }
-          : msg
-      )
+          ? {
+              ...msg,
+              status: "pending",
+              statusMessage: "Scheduling event in Google Calendar...",
+            }
+          : msg,
+      ),
     );
 
     // Standardize datetime formatting
@@ -503,7 +570,11 @@ export default function Chat() {
     const formattedEnd = new Date(endDateTime).toISOString();
 
     createEvent(
-      { summary: title, startDateTime: formattedStart, endDateTime: formattedEnd },
+      {
+        summary: title,
+        startDateTime: formattedStart,
+        endDateTime: formattedEnd,
+      },
       {
         onSuccess: () => {
           setMessages((prev) =>
@@ -512,14 +583,15 @@ export default function Chat() {
                 ? {
                     ...msg,
                     status: "success",
-                    statusMessage: "Event scheduled in Google Calendar successfully!",
+                    statusMessage:
+                      "Event scheduled in Google Calendar successfully!",
                     action: {
                       type: "create_calendar_event",
                       data: { title, startDateTime, endDateTime },
                     },
                   }
-                : msg
-            )
+                : msg,
+            ),
           );
         },
         onError: (error: any) => {
@@ -529,13 +601,14 @@ export default function Chat() {
                 ? {
                     ...msg,
                     status: "error",
-                    statusMessage: error?.message || "Failed to schedule event.",
+                    statusMessage:
+                      error?.message || "Failed to schedule event.",
                   }
-                : msg
-            )
+                : msg,
+            ),
           );
         },
-      }
+      },
     );
   };
 
@@ -545,16 +618,29 @@ export default function Chat() {
       style={{ background: "var(--bg-base)", color: "var(--text-primary)" }}
     >
       {/* Top Header */}
-      <header className="px-8 py-6 flex justify-between items-center shrink-0" style={{ borderBottom: "1px solid var(--border)" }}>
+      <header
+        className="px-8 py-6 flex justify-between items-center shrink-0"
+        style={{ borderBottom: "1px solid var(--border)" }}
+      >
         <div>
-          <span className="text-[9px] font-extrabold tracking-widest uppercase font-mono" style={{ color: "var(--lime)" }}>
+          <span
+            className="text-[9px] font-extrabold tracking-widest uppercase font-mono"
+            style={{ color: "var(--lime)" }}
+          >
             Commander Agent
           </span>
-          <h1 className="text-2xl font-extrabold tracking-tight mt-1" style={{ color: "var(--text-primary)" }}>
+          <h1
+            className="text-2xl font-extrabold tracking-tight mt-1"
+            style={{ color: "var(--text-primary)" }}
+          >
             AI Assistant Chat
           </h1>
-          <p className="text-xs mt-1" style={{ color: "var(--text-secondary)" }}>
-            Draft emails, schedule calendar events, and orchestrate actions in real-time.
+          <p
+            className="text-xs mt-1"
+            style={{ color: "var(--text-secondary)" }}
+          >
+            Draft emails, schedule calendar events, and orchestrate actions in
+            real-time.
           </p>
         </div>
       </header>
@@ -565,18 +651,39 @@ export default function Chat() {
           <div className="max-w-2xl mx-auto py-16 flex flex-col items-center justify-center text-center space-y-6">
             <div
               className="w-12 h-12 rounded-2xl flex items-center justify-center border"
-              style={{ background: "var(--lime-glow)", borderColor: "rgba(200,241,53,0.2)" }}
+              style={{
+                background: "var(--lime-glow)",
+                borderColor: "rgba(200,241,53,0.2)",
+              }}
             >
-              <svg className="w-6 h-6" style={{ color: "var(--lime)" }} fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+              <svg
+                className="w-6 h-6"
+                style={{ color: "var(--lime)" }}
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
+                />
               </svg>
             </div>
             <div className="space-y-2">
-              <h2 className="text-sm font-bold uppercase tracking-wider" style={{ color: "var(--text-primary)" }}>
+              <h2
+                className="text-sm font-bold uppercase tracking-wider"
+                style={{ color: "var(--text-primary)" }}
+              >
                 Start Orchestrating Actions
               </h2>
-              <p className="text-xs max-w-sm" style={{ color: "var(--text-secondary)" }}>
-                Ask me to write emails, draft syncs, plan your schedule, or simply chat to coordinate tasks.
+              <p
+                className="text-xs max-w-sm"
+                style={{ color: "var(--text-secondary)" }}
+              >
+                Ask me to write emails, draft syncs, plan your schedule, or
+                simply chat to coordinate tasks.
               </p>
             </div>
 
@@ -590,7 +697,11 @@ export default function Chat() {
                     key={i}
                     onClick={() => sendMessage(sug)}
                     className="w-full text-left p-3 rounded-xl border text-xs font-semibold hover:border-[var(--lime)]/30 hover:bg-[var(--lime-glow)] transition duration-200 cursor-pointer"
-                    style={{ background: "var(--bg-surface)", borderColor: "var(--border)", color: "var(--text-primary)" }}
+                    style={{
+                      background: "var(--bg-surface)",
+                      borderColor: "var(--border)",
+                      color: "var(--text-primary)",
+                    }}
                   >
                     {sug}
                   </button>
@@ -608,12 +719,18 @@ export default function Chat() {
             >
               <div className="max-w-2xl space-y-1">
                 {msg.role === "assistant" && (
-                  <span className="text-[9px] font-mono tracking-widest uppercase ml-1" style={{ color: "var(--text-muted)" }}>
+                  <span
+                    className="text-[9px] font-mono tracking-widest uppercase ml-1"
+                    style={{ color: "var(--text-muted)" }}
+                  >
                     AI Commander
                   </span>
                 )}
                 {msg.role === "user" && (
-                  <span className="text-[9px] font-mono tracking-widest uppercase mr-1 block text-right" style={{ color: "var(--text-muted)" }}>
+                  <span
+                    className="text-[9px] font-mono tracking-widest uppercase mr-1 block text-right"
+                    style={{ color: "var(--text-muted)" }}
+                  >
                     You
                   </span>
                 )}
@@ -651,7 +768,9 @@ export default function Chat() {
                         body={msg.action.data.body}
                         status={msg.status}
                         statusMessage={msg.statusMessage}
-                        onSend={(to, subject, body) => handleSendEmail(msg.id, to, subject, body)}
+                        onSend={(to, subject, body) =>
+                          handleSendEmail(msg.id, to, subject, body)
+                        }
                       />
                     )}
 
@@ -662,7 +781,9 @@ export default function Chat() {
                         endDateTime={msg.action.data.endDateTime}
                         status={msg.status}
                         statusMessage={msg.statusMessage}
-                        onSave={(title, start, end) => handleScheduleEvent(msg.id, title, start, end)}
+                        onSave={(title, start, end) =>
+                          handleScheduleEvent(msg.id, title, start, end)
+                        }
                       />
                     )}
                   </div>
@@ -673,7 +794,10 @@ export default function Chat() {
 
           {loading && (
             <div className="flex justify-start items-center gap-2 animate-pulse">
-              <span className="text-[9px] font-mono tracking-widest uppercase" style={{ color: "var(--text-muted)" }}>
+              <span
+                className="text-[9px] font-mono tracking-widest uppercase"
+                style={{ color: "var(--text-muted)" }}
+              >
                 Thinking...
               </span>
               <div className="flex space-x-1">
@@ -688,7 +812,10 @@ export default function Chat() {
       </div>
 
       {/* Input Bar */}
-      <div className="p-6 shrink-0" style={{ borderTop: "1px solid var(--border)" }}>
+      <div
+        className="p-6 shrink-0"
+        style={{ borderTop: "1px solid var(--border)" }}
+      >
         <div className="max-w-4xl mx-auto flex gap-3">
           <input
             className="flex-1 px-5 py-3.5 rounded-xl text-xs outline-none transition"
@@ -707,8 +834,12 @@ export default function Chat() {
               border: "1px solid var(--border)",
               color: "var(--text-primary)",
             }}
-            onFocus={(e) => (e.currentTarget.style.borderColor = "rgba(200, 241, 53, 0.4)")}
-            onBlur={(e) => (e.currentTarget.style.borderColor = "var(--border)")}
+            onFocus={(e) =>
+              (e.currentTarget.style.borderColor = "rgba(200, 241, 53, 0.4)")
+            }
+            onBlur={(e) =>
+              (e.currentTarget.style.borderColor = "var(--border)")
+            }
           />
 
           <button
@@ -722,8 +853,18 @@ export default function Chat() {
             }}
           >
             <span>Send</span>
-            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+            <svg
+              className="w-3.5 h-3.5"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.5"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M14 5l7 7m0 0l-7 7m7-7H3"
+              />
             </svg>
           </button>
         </div>
@@ -731,4 +872,3 @@ export default function Chat() {
     </div>
   );
 }
-
