@@ -17,34 +17,36 @@ export async function GET(request: Request) {
       const result = await tenant.gmail.api.messages.list({
         userId: "me",
         q: "is:sent",
+        maxResults: 20,
       });
+
       const messagesList = result.messages || [];
       const detailedMessages = await Promise.all(
-        messagesList.slice(0, 20).map(async (msg: any) => {
+        messagesList.map(async (msg: any) => {
           try {
-            return await tenant.gmail.api.messages.get({
+            const detail = await tenant.gmail.api.messages.get({
               userId: "me",
               id: msg.id,
               format: "full",
             });
+            return detail;
           } catch (e) {
             console.error("Failed to get message details for", msg.id, e);
             return null;
           }
-        })
+        }),
       );
+
       return NextResponse.json(
         {
           success: true,
           emails: detailedMessages.filter(Boolean),
         },
-        {
-          status: 200,
-        },
+        { status: 200 },
       );
     }
 
-    const message = await tenant.gmail.api.messages.get({
+    const response = await tenant.gmail.api.messages.get({
       userId: "me",
       id,
       format: "full",
@@ -53,23 +55,54 @@ export async function GET(request: Request) {
     return NextResponse.json(
       {
         success: true,
-        message,
+        message: response.payload,
       },
-      {
-        status: 200,
-      },
+      { status: 200 },
     );
   } catch (error) {
     console.error(error);
+    return NextResponse.json(
+      { success: false, error: getErrorMessage(error) },
+      { status: getErrorStatus(error) },
+    );
+  }
+}
+
+export async function DELETE(request: Request) {
+  const auth = await requireSession();
+  if ("response" in auth) {
+    return auth.response;
+  }
+
+  try {
+    const url = new URL(request.url);
+    const id = url.searchParams.get("id");
+    const tenant = await getAuthenticatedGmailTenant(auth.userId);
+
+    if (!id) {
+      return NextResponse.json(
+        { success: false, error: "Message ID is required to delete." },
+        { status: 400 },
+      );
+    }
+
+    const response = await tenant.gmail.api.messages.trash({
+      userId: "me",
+      id: id,
+    });
 
     return NextResponse.json(
       {
-        success: false,
-        error: getErrorMessage(error),
+        success: true,
+        message: response.payload,
       },
-      {
-        status: getErrorStatus(error),
-      },
+      { status: 200 },
+    );
+  } catch (error) {
+    console.error(error);
+    return NextResponse.json(
+      { success: false, error: getErrorMessage(error) },
+      { status: getErrorStatus(error) },
     );
   }
 }
