@@ -420,10 +420,17 @@ export default function Chat() {
     setLoading(true);
 
     try {
+      const promptMessages = [
+        ...messages
+          .filter((m) => m.role === "user" && m.content?.trim())
+          .map((m) => ({ role: "user" as const, content: m.content!.trim() })),
+        { role: "user" as const, content: text.trim() },
+      ];
+
       const response = await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: text }),
+        body: JSON.stringify({ messages: promptMessages }),
       });
 
       if (!response.ok) throw new Error("Failed to connect to AI");
@@ -780,7 +787,7 @@ export default function Chat() {
             value={input}
             disabled={loading}
             onChange={(e) => setInput(e.target.value)}
-            placeholder='e.g., "Book a meeting with ghoufran next Monday at 10 AM and also send the email to ghoufran111@gmail.com"'
+            placeholder='e.g., "Book a meeting with John next Monday at 10 AM and also send the email to example@gmail.com"'
             onKeyDown={(e) =>
               e.key === "Enter" &&
               !e.shiftKey &&

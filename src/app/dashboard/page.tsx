@@ -3,10 +3,10 @@
 import { authClient } from "@/lib/auth-client";
 import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
-import { useGmailDraft } from "@/hooks/useCreateGmailDraft";
+import { useGmailDraft, useGmailDrafts } from "@/hooks/useCreateGmailDraft";
 import { useCalendarEvents } from "@/hooks/useCalendarEvents";
+import { parseGmailMessage } from "@/app/gmail/component/gmail-utils";
 import { useMemo } from "react";
-import Chat from "../chat/page";
 
 export default function Dashboard() {
   const { data: session } = useQuery({
@@ -15,6 +15,7 @@ export default function Dashboard() {
   });
 
   const { emails, isFetching: emailsFetching } = useGmailDraft();
+  const { drafts, isFetching: draftsFetching } = useGmailDrafts();
   const { events, isFetching: eventsFetching } = useCalendarEvents();
 
   const user = session?.data?.user;
@@ -32,7 +33,27 @@ export default function Dashboard() {
     [events, todayKey]
   );
 
-  const recentEmails = useMemo(() => emails.slice(0, 4), [emails]);
+  const recentEmails = useMemo(
+    () =>
+      emails
+        .slice(0, 4)
+        .map((email: Parameters<typeof parseGmailMessage>[0]) =>
+          parseGmailMessage(email),
+        ),
+    [emails],
+  );
+
+  const recentDrafts = useMemo(
+    () =>
+      drafts
+        .slice(0, 4)
+        .map((draft: Parameters<typeof parseGmailMessage>[0]) =>
+          parseGmailMessage(draft),
+        ),
+    [drafts],
+  );
+
+  const isLoadingStats = emailsFetching || draftsFetching || eventsFetching;
 
   const greeting = useMemo(() => {
     const h = today.getHours();
@@ -65,6 +86,18 @@ export default function Dashboard() {
       color: "#60d4f0",
       bg: "rgba(96,212,240,0.06)",
       borderColor: "rgba(96,212,240,0.12)",
+    },
+    {
+      label: "Drafts",
+      value: drafts.length,
+      icon: (
+        <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
+        </svg>
+      ),
+      color: "#c084fc",
+      bg: "rgba(192,132,252,0.06)",
+      borderColor: "rgba(192,132,252,0.12)",
     },
     {
       label: "Upcoming",
@@ -108,6 +141,26 @@ export default function Dashboard() {
       icon: (
         <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+        </svg>
+      ),
+    },
+    {
+      href: "/gmail?tab=drafts",
+      label: "Gmail Drafts",
+      sublabel: "Edit & Send",
+      icon: (
+        <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
+        </svg>
+      ),
+    },
+    {
+      href: "/gmail?tab=purchases",
+      label: "Purchases",
+      sublabel: "Order Receipts",
+      icon: (
+        <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 3h1.386c.51 0 .955.343 1.087.835l.383 1.437M7.5 14.25a3 3 0 00-3 3h15.75m-12.75-3h11.218c1.121-2.3 2.1-4.684 2.924-7.138a60.114 60.114 0 00-16.536-1.84M7.5 14.25L5.106 5.272M6 20.25a.75.75 0 11-1.5 0 .75.75 0 011.5 0zm12.75 0a.75.75 0 11-1.5 0 .75.75 0 011.5 0z" />
         </svg>
       ),
     },
@@ -212,7 +265,7 @@ export default function Dashboard() {
       </div>
 
       {/* Stats Row */}
-      <div className="grid gap-4 sm:grid-cols-3">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {stats.map((stat) => (
           <div
             key={stat.label}
@@ -233,7 +286,7 @@ export default function Dashboard() {
                   {stat.label}
                 </p>
                 <p className="text-3xl font-extrabold tracking-tight mt-1" style={{ color: stat.color }}>
-                  {(emailsFetching || eventsFetching) ? (
+                  {isLoadingStats ? (
                     <span className="inline-block w-8 h-8 rounded-lg animate-pulse" style={{ background: stat.bg }} />
                   ) : (
                     stat.value
@@ -259,7 +312,7 @@ export default function Dashboard() {
           </h3>
           <div className="flex-1 h-px" style={{ background: "var(--border)" }} />
         </div>
-        <div className="grid gap-3 grid-cols-2 md:grid-cols-4">
+        <div className="grid gap-3 grid-cols-2 md:grid-cols-3 lg:grid-cols-6">
           {quickActions.map((action, i) => (
             <Link
               key={i}
@@ -304,7 +357,7 @@ export default function Dashboard() {
       </div>
 
       {/* Activity Panels */}
-      <div className="grid gap-5 lg:grid-cols-2">
+      <div className="grid gap-5 lg:grid-cols-3">
         {/* Upcoming Events */}
         <div
           className="rounded-2xl overflow-hidden"
@@ -467,58 +520,139 @@ export default function Dashboard() {
                 </Link>
               </div>
             ) : (
-              recentEmails.map((email: any) => {
-                const headers = email.payload?.headers || [];
-                const h = (name: string) => (headers.find((x: any) => x.name.toLowerCase() === name.toLowerCase())?.value ?? "");
-                const to = h("to") || "(No Recipient)";
-                const subject = h("subject") || "(No Subject)";
-                const snippet = email.snippet
-                  ? email.snippet.replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, '"').replace(/&#39;/g, "'")
-                  : "";
-                const dateHeader = h("date");
-                const dateStr = dateHeader
-                  ? new Date(dateHeader).toLocaleDateString("en-US", { month: "short", day: "numeric" })
-                  : email.internalDate
-                    ? new Date(Number(email.internalDate)).toLocaleDateString("en-US", { month: "short", day: "numeric" })
-                    : "";
-
-                return (
-                  <Link
-                    key={email.id}
-                    href="/gmail"
-                    className="flex items-start gap-4 px-6 py-4 transition-colors duration-150 hover:bg-[rgba(96,212,240,0.02)]"
+              recentEmails.map((email: ReturnType<typeof parseGmailMessage>) => (
+                <Link
+                  key={email.id}
+                  href="/gmail"
+                  className="flex items-start gap-4 px-6 py-4 transition-colors duration-150 hover:bg-[rgba(96,212,240,0.02)]"
+                >
+                  <div
+                    className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0 mt-0.5 text-[10px] font-extrabold uppercase"
+                    style={{
+                      background: "var(--bg-card)",
+                      border: "1px solid var(--border)",
+                      color: "var(--text-secondary)",
+                    }}
                   >
-                    <div
-                      className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0 mt-0.5 text-[10px] font-extrabold uppercase"
-                      style={{
-                        background: "var(--bg-card)",
-                        border: "1px solid var(--border)",
-                        color: "var(--text-secondary)",
-                      }}
-                    >
-                      {to.charAt(0).toUpperCase()}
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-center justify-between gap-2">
-                        <p className="text-xs font-bold truncate" style={{ color: "var(--text-primary)" }}>
-                          {subject}
-                        </p>
-                        <span className="text-[9px] font-mono shrink-0" style={{ color: "var(--text-muted)" }}>
-                          {dateStr}
-                        </span>
-                      </div>
-                      <p className="text-[10px] font-mono truncate mt-0.5" style={{ color: "var(--text-secondary)" }}>
-                        To: {to}
+                    {email.to.charAt(0).toUpperCase()}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center justify-between gap-2">
+                      <p className="text-xs font-bold truncate" style={{ color: "var(--text-primary)" }}>
+                        {email.subject}
                       </p>
-                      {snippet && (
-                        <p className="text-[10px] truncate mt-1" style={{ color: "var(--text-muted)" }}>
-                          {snippet}
-                        </p>
-                      )}
+                      <span className="text-[9px] font-mono shrink-0" style={{ color: "var(--text-muted)" }}>
+                        {email.date}
+                      </span>
                     </div>
-                  </Link>
-                );
-              })
+                    <p className="text-[10px] font-mono truncate mt-0.5" style={{ color: "var(--text-secondary)" }}>
+                      To: {email.to}
+                    </p>
+                    {email.snippet && (
+                      <p className="text-[10px] truncate mt-1" style={{ color: "var(--text-muted)" }}>
+                        {email.snippet}
+                      </p>
+                    )}
+                  </div>
+                </Link>
+              ))
+            )}
+          </div>
+        </div>
+
+        {/* Recent Drafts */}
+        <div
+          className="rounded-2xl overflow-hidden"
+          style={{ background: "var(--bg-surface)", border: "1px solid var(--border)" }}
+        >
+          <div className="flex items-center justify-between px-6 py-4" style={{ borderBottom: "1px solid var(--border)" }}>
+            <div className="flex items-center gap-2.5">
+              <div
+                className="w-7 h-7 rounded-lg flex items-center justify-center"
+                style={{ background: "rgba(192,132,252,0.06)", border: "1px solid rgba(192,132,252,0.12)", color: "#c084fc" }}
+              >
+                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
+                </svg>
+              </div>
+              <div>
+                <h3 className="text-[10px] font-extrabold uppercase tracking-widest" style={{ color: "var(--text-primary)" }}>
+                  Recent Drafts
+                </h3>
+              </div>
+            </div>
+            <Link
+              href="/gmail?tab=drafts"
+              className="text-[9px] font-bold uppercase tracking-widest transition hover:opacity-80"
+              style={{ color: "#c084fc" }}
+            >
+              View All →
+            </Link>
+          </div>
+
+          <div className="divide-y" style={{ borderColor: "var(--border-muted)" }}>
+            {draftsFetching && recentDrafts.length === 0 ? (
+              <div className="p-6 flex justify-center">
+                <div className="flex items-center gap-2 text-[10px] font-mono" style={{ color: "var(--text-secondary)" }}>
+                  <svg className="animate-spin h-3.5 w-3.5" style={{ color: "#c084fc" }} viewBox="0 0 24 24" fill="none">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                  </svg>
+                  Loading drafts...
+                </div>
+              </div>
+            ) : recentDrafts.length === 0 ? (
+              <div className="p-8 flex flex-col items-center justify-center text-center">
+                <div
+                  className="w-10 h-10 rounded-xl flex items-center justify-center mb-3"
+                  style={{ background: "var(--bg-card)", border: "1px solid var(--border)", color: "var(--text-muted)" }}
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
+                  </svg>
+                </div>
+                <p className="text-[11px] font-medium" style={{ color: "var(--text-muted)" }}>No drafts yet</p>
+                <Link href="/gmail?tab=drafts" className="mt-2 text-[10px] font-bold" style={{ color: "#c084fc" }}>
+                  + Create Draft
+                </Link>
+              </div>
+            ) : (
+              recentDrafts.map((draft: ReturnType<typeof parseGmailMessage>) => (
+                <Link
+                  key={draft.id}
+                  href="/gmail?tab=drafts"
+                  className="flex items-start gap-4 px-6 py-4 transition-colors duration-150 hover:bg-[rgba(192,132,252,0.02)]"
+                >
+                  <div
+                    className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0 mt-0.5 text-[10px] font-extrabold uppercase"
+                    style={{
+                      background: "var(--bg-card)",
+                      border: "1px solid var(--border)",
+                      color: "var(--text-secondary)",
+                    }}
+                  >
+                    {draft.to.charAt(0).toUpperCase()}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center justify-between gap-2">
+                      <p className="text-xs font-bold truncate" style={{ color: "var(--text-primary)" }}>
+                        {draft.subject}
+                      </p>
+                      <span className="text-[9px] font-mono shrink-0" style={{ color: "var(--text-muted)" }}>
+                        {draft.date}
+                      </span>
+                    </div>
+                    <p className="text-[10px] font-mono truncate mt-0.5" style={{ color: "var(--text-secondary)" }}>
+                      To: {draft.to}
+                    </p>
+                    {draft.snippet && (
+                      <p className="text-[10px] truncate mt-1" style={{ color: "var(--text-muted)" }}>
+                        {draft.snippet}
+                      </p>
+                    )}
+                  </div>
+                </Link>
+              ))
             )}
           </div>
         </div>
