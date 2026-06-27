@@ -17,8 +17,7 @@
 @theme inline {
   --color-background: var(--bg-base);
   --color-foreground: var(--text-primary);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-poppins: var(--font-poppins);
 }
 
 * {
@@ -28,7 +27,7 @@
 body {
   background: var(--bg-base);
   color: var(--text-primary);
-  font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
+  font-family: var(--font-poppins);
   -webkit-font-smoothing: antialiased;
 }
 
@@ -74,6 +73,31 @@ body {
   66% {
     transform: translate(14px, -10px) scale(0.98);
   }
+}
+
+/* ── Vertical marquee ─────────────────────────────── */
+@keyframes marquee-down {
+  0%   { transform: translateY(0); }
+  100% { transform: translateY(-50%); }
+}
+
+@keyframes marquee-up {
+  0%   { transform: translateY(-50%); }
+  100% { transform: translateY(0); }
+}
+
+.animate-marquee-down {
+  animation: marquee-down 28s linear infinite;
+}
+
+.animate-marquee-up {
+  animation: marquee-up 28s linear infinite;
+}
+
+/* Pause marquee on hover for accessibility */
+.marquee-track:hover .animate-marquee-down,
+.marquee-track:hover .animate-marquee-up {
+  animation-play-state: paused;
 }
 
 /* Scrollbar */
