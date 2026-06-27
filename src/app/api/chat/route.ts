@@ -21,34 +21,40 @@ interface ChatAction {
 
 type AssistantAction = CalendarAction | EmailAction | ChatAction;
 
-export async function POST(req: Request) {
-  try {
-    const { message } = await req.json();
+type PromptMessage = {
+  role: string;
+  content: string;
+};
 
-    if (!message || typeof message !== "string") {
-      return Response.json([{
-        action: "chat_reply",
-        message: "Invalid request: message is required."
-      }]);
-    }
+function extractPromptMessages(body: {
+  message?: unknown;
+  messages?: unknown;
+}): { role: "user"; content: string }[] {
+  if (Array.isArray(body.messages)) {
+    return body.messages
+      .filter(
+        (item): item is PromptMessage =>
+          !!item &&
+          typeof item === "object" &&
+          (item as PromptMessage).role === "user" &&
+          typeof (item as PromptMessage).content === "string" &&
+          (item as PromptMessage).content.trim().length > 0,
+      )
+      .map((item) => ({
+        role: "user" as const,
+        content: item.content.trim(),
+      }));
+  }
 
-    const now = new Date();
-    const currentDateTimeStr = now.toLocaleString("en-US", {
-      weekday: "long",
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-      hour: "numeric",
-      minute: "2-digit",
-      timeZoneName: "short",
-    });
+  if (typeof body.message === "string" && body.message.trim()) {
+    return [{ role: "user", content: body.message.trim() }];
+  }
 
-    const completion = await openrouter.chat.completions.create({
-      model: "x-ai/grok-4.3",
-      messages: [
-        {
-          role: "system",
-          content: `You are a precise productivity assistant that can perform MULTIPLE actions in one response.
+  return [];
+}
+
+function buildSystemPrompt(currentDateTimeStr: string) {
+  return `You are a precise productivity assistant that can perform MULTIPLE actions in one response.
 
 Current Date and Time: ${currentDateTimeStr}
 
@@ -73,9 +79,39 @@ INSTRUCTIONS:
 - When user says "book a meeting" + "send email", you MUST output BOTH actions.
 - Be specific and professional in titles, subjects, and email bodies.
 - Use reasonable defaults if details are missing.
-- Always output valid JSON array.`.trim(),
+- Always output valid JSON array.`.trim();
+}
+
+export async function POST(req: Request) {
+  try {
+    const body = await req.json();
+    const promptMessages = extractPromptMessages(body);
+
+    if (promptMessages.length === 0) {
+      return Response.json([
+        {
+          action: "chat_reply",
+          message: "Invalid request: at least one user prompt message is required.",
         },
-        { role: "user", content: message },
+      ]);
+    }
+
+    const now = new Date();
+    const currentDateTimeStr = now.toLocaleString("en-US", {
+      weekday: "long",
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+      hour: "numeric",
+      minute: "2-digit",
+      timeZoneName: "short",
+    });
+
+    const completion = await openrouter.chat.completions.create({
+      model: "x-ai/grok-4.3",
+      messages: [
+        { role: "system", content: buildSystemPrompt(currentDateTimeStr) },
+        ...promptMessages,
       ],
       temperature: 0.1,
       max_tokens: 1500,
@@ -83,12 +119,12 @@ INSTRUCTIONS:
 
     let raw = (completion.choices[0]?.message?.content || "").trim();
 
-     raw = raw
+    raw = raw
       .replace(/^```(?:json)?\s*/i, "")
       .replace(/```\s*$/, "")
       .trim();
 
-     const jsonStart = raw.indexOf("[");
+    const jsonStart = raw.indexOf("[");
     const jsonEnd = raw.lastIndexOf("]") + 1;
 
     if (jsonStart !== -1 && jsonEnd > jsonStart) {
@@ -102,31 +138,40 @@ INSTRUCTIONS:
       parsed = Array.isArray(data) ? data : [data];
     } catch (e) {
       console.error("JSON Parse Error. Raw:", raw);
-      parsed = [{
-        action: "chat_reply",
-        message: "Sorry, I couldn't understand your request. Please try again."
-      }];
+      parsed = [
+        {
+          action: "chat_reply",
+          message: "Sorry, I couldn't understand your request. Please try again.",
+        },
+      ];
     }
 
-     parsed = parsed.filter((action: any) =>
-      action &&
-      typeof action === "object" &&
-      ["create_calendar_event", "create_email", "chat_reply"].includes(action.action)
+    parsed = parsed.filter(
+      (action: AssistantAction) =>
+        action &&
+        typeof action === "object" &&
+        ["create_calendar_event", "create_email", "chat_reply"].includes(
+          action.action,
+        ),
     );
 
     if (parsed.length === 0) {
-      parsed = [{
-        action: "chat_reply",
-        message: "No valid actions could be extracted."
-      }];
+      parsed = [
+        {
+          action: "chat_reply",
+          message: "No valid actions could be extracted.",
+        },
+      ];
     }
 
     return Response.json(parsed);
   } catch (error) {
     console.error("API Error:", error);
-    return Response.json([{
-      action: "chat_reply",
-      message: "An internal error occurred. Please try again."
-    }]);
+    return Response.json([
+      {
+        action: "chat_reply",
+        message: "An internal error occurred. Please try again.",
+      },
+    ]);
   }
 }
