@@ -1,128 +1,220 @@
-# ⚡ Inbox Commander
+# Inbox Commander
 
-Inbox Commander is a high-density, keyboard-first command center for orchestrating your Google Workspace. Built on top of the ultra-fast **Corsair** integration platform, it brings Gmail draft management and Google Calendar scheduling into a unified, zero-bloat console interface.
-
-## ✨ Latest Update
-
-The landing page has been refreshed with polished micro-animations, subtle hover motion, and a more immersive hero experience. These updates improve the first impression while keeping the high-density terminal style intact.
+Inbox Commander is a keyboard-first command center for Gmail and Google Calendar. Built on the **Corsair** integration platform, it unifies email management, calendar scheduling, and an AI assistant in a single dark-mode console UI.
 
 ---
 
-## 🚀 Key Features
+## Features
 
-- **📬 Dual-Pane Gmail Composer**: List, view, compose, and delete email drafts in a lightning-fast side-by-side layout. Saves and deletes sync with Google in real-time.
-- **📅 Interactive Calendar Grid**: An agenda scheduler that lets you view, create, and delete calendar events for any date. Navigate across months and see today's agenda at a glance.
-- **🔐 Secure OAuth & Multi-Tenancy**: Built using [Better Auth](https://www.better-auth.com/) and powered by Corsair. All access tokens are sandboxed, encrypted with AES-256 via key encryption keys (KEKs), and never cached permanently on disk.
-- **💻 Vim-Inspired Layout & Aesthetics**: Sleek dark mode styling with vibrant lime accentuation, subtle micro-animations, and minimal layout overhead.
+### Gmail
+- **Sent emails** — list, preview, send new mail, move to trash
+- **Drafts** — create, list, send, and delete drafts
+- **Folders** — Starred, Important, Snoozed, Spam, Purchases, and Trash
+- **Trash** — restore or permanently delete messages
+- Split-pane list + preview layout for every folder
+
+### Google Calendar
+- Monthly grid with event list sidebar
+- Create and delete events
+- Dashboard widgets for today's and upcoming events
+
+### AI Assistant (`/chat`)
+- Natural-language requests powered by OpenRouter (Grok)
+- Detects multiple actions in one prompt (email + calendar)
+- Returns structured JSON for email compose cards and calendar event forms
+- Sends only user prompt messages to the model (no assistant history replay)
+
+### Dashboard
+- Personalized greeting and stats (events, sent mail, drafts)
+- Quick actions for compose, calendar, Gmail folders, and chat
+- Activity panels for upcoming events, recent sent mail, and drafts
+
+### Auth & Security
+- Google OAuth and email/password via [Better Auth](https://www.better-auth.com/)
+- Corsair multi-tenant token storage with AES-256 KEK encryption
+- Session-gated API routes
 
 ---
 
-## 🛠️ Tech Stack & Architecture
+## Tech Stack
 
-### Core Tech Stack
-
-- **Framework**: [Next.js 16](https://nextjs.org/) (App Router, React 19)
-- **Styling**: [Tailwind CSS v4](https://tailwindcss.com/) & CSS custom properties
-- **Auth**: [Better Auth v1](https://www.better-auth.com/) (Google OAuth & Email/Password login)
-- **Database & ORM**: PostgreSQL via [Prisma Client](https://www.prisma.io/)
-- **Integrations**: [Corsair Engine](https://github.com/corsair-dev) (`@corsair-dev/gmail`, `@corsair-dev/googlecalendar`)
-- **Data Fetching**: [TanStack React Query v5](https://tanstack.com/query/latest)
-- **Linting & Formatting**: [Biome](https://biomejs.dev/)
+| Layer | Technology |
+|--------|------------|
+| Framework | [Next.js 16](https://nextjs.org/) (App Router, React 19) |
+| Styling | [Tailwind CSS v4](https://tailwindcss.com/) + CSS variables |
+| Auth | [Better Auth v1](https://www.better-auth.com/) |
+| Database | PostgreSQL + [Prisma 7](https://www.prisma.io/) |
+| Integrations | [Corsair](https://github.com/corsair-dev) (`@corsair-dev/gmail`, `@corsair-dev/googlecalendar`) |
+| Data fetching | [TanStack React Query v5](https://tanstack.com/query/latest) |
+| AI | [OpenRouter](https://openrouter.ai/) via OpenAI SDK |
+| Lint / format | [Biome](https://biomejs.dev/) |
 
 ---
 
-## 📁 Directory Structure
+## Project Structure
 
 ```text
 ├── prisma/
-│   ├── schema.prisma       # Prisma schema for user auth and Corsair account/entity sync
-│   └── migrations/         # PostgreSQL DB migrations
+│   ├── schema.prisma          # User auth + Corsair integration models
+│   └── migrations/
 ├── src/
 │   ├── app/
-│   │   ├── api/            # API Endpoints (Gmail, Calendar, Better Auth wildcard)
-│   │   ├── calendar/       # Interactive Calendar Page
-│   │   ├── gmail/          # Split-View Drafts Composer
-│   │   ├── login/ /signup/ # Secure Auth Pages
-│   │   └── page.tsx        # High-density landing page
-│   ├── hooks/              # Custom query hooks (useCreateGmailDraft, useCalendarEvents)
-│   ├── lib/                # Auth configurations, Prisma clients, and Corsair adapters
-│   ├── services/           # Backend interaction layers
-│   ├── types/              # Domain TypeScript types
-│   └── utils/              # Helper functions (date keys, class utilities)
-├── corsair.ts              # Root Corsair engine and plugin config
-└── package.json            # Scripts, dev tools, and packages
+│   │   ├── api/
+│   │   │   ├── auth/[...all]   # Better Auth handler
+│   │   │   ├── calendar/       # Calendar CRUD
+│   │   │   ├── chat/           # AI assistant (OpenRouter)
+│   │   │   └── gmail/
+│   │   │       ├── route.ts    # Sent emails (GET, DELETE → trash)
+│   │   │       ├── send/       # Send email or draft
+│   │   │       ├── drafts/     # Drafts CRUD
+│   │   │       ├── trash/      # Trash list, restore, delete forever
+│   │   │       ├── folder/     # spam, important, snoozed, starred, purchases
+│   │   │       └── purchases/  # Purchase receipts + analytics
+│   │   ├── dashboard/        # Main dashboard
+│   │   ├── gmail/            # Gmail UI (sidebar-driven views)
+│   │   ├── calendar/         # Calendar UI
+│   │   ├── chat/             # AI assistant UI
+│   │   ├── login/ / signup/
+│   │   └── page.tsx          # Landing page
+│   ├── hooks/                # React Query hooks (Gmail, calendar)
+│   ├── lib/                  # Auth, Prisma, Corsair, OpenRouter, folder config
+│   ├── services/             # Client-side API helpers (gmail-api.ts)
+│   └── types/
+├── corsair.ts                # Corsair engine config
+└── package.json
 ```
 
 ---
 
-## ⚙️ Database Schema & Corsair Integration
+## API Overview
 
-The PostgreSQL database (configured through [prisma/schema.prisma](file:///c:/Users/Rahman%20ullah/Documents/inbox-commander/prisma/schema.prisma)) bridges user profiles with Google token isolation:
+### Gmail
 
-- **Core User Auth**: `User`, `Session`, `Account`, and `Verification` schemas mapping to Better Auth specs.
-- **Corsair Integrations**:
-  - `CorsairIntegration`: Stores configured integrations (Gmail, Google Calendar).
-  - `CorsairAccount`: Ties authenticated user profiles with multi-tenant workspace credentials.
-  - `CorsairEntity` & `CorsairEvent`: Manages operational telemetry, draft models, and webhook pipelines under isolated scopes.
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `GET` | `/api/gmail` | List sent emails |
+| `DELETE` | `/api/gmail?id=` | Move email to trash |
+| `POST` | `/api/gmail/send` | Send email (`raw`) or draft (`draftId`) |
+| `GET` | `/api/gmail/drafts` | List drafts |
+| `POST` | `/api/gmail/drafts` | Create draft |
+| `DELETE` | `/api/gmail/drafts?id=` | Delete draft |
+| `GET` | `/api/gmail/trash` | List trashed emails |
+| `POST` | `/api/gmail/trash` | Restore email (`{ id }`) |
+| `DELETE` | `/api/gmail/trash?id=` | Delete forever |
+| `GET` | `/api/gmail/folder?folder=` | `spam`, `important`, `snoozed`, `starred`, `purchases` |
+| `GET` | `/api/gmail/purchases` | Purchase emails + analytics |
+
+### Calendar
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `GET` | `/api/calendar` | List events |
+| `POST` | `/api/calendar` | Create event |
+| `DELETE` | `/api/calendar?id=` | Delete event |
+
+### Chat
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `POST` | `/api/chat` | AI assistant — body: `{ messages: [{ role: "user", content }] }` |
 
 ---
 
-## 🏁 Getting Started
+## Getting Started
 
-### 1. Prerequisites
+### Prerequisites
 
-- **Node.js** (v18+)
-- **pnpm** (preferred) or npm
-- **PostgreSQL Database** running locally or in the cloud.
+- Node.js 18+
+- pnpm (recommended)
+- PostgreSQL database
+- Google Cloud OAuth credentials (Gmail + Calendar scopes)
+- OpenRouter API key (for AI chat)
 
-### 2. Environment Setup
+### Environment variables
 
-Create a `.env` file in the root directory and configure the following:
+Create a `.env` file in the project root:
 
 ```env
-# Encryption & Local Database
+# Database
+DATABASE_URL="postgresql://username:password@localhost:5432/inbox_commander"
+
+# Corsair encryption
 CORSAIR_KEK="your-aes-256-key-encryption-key"
-DATABASE_URL="postgresql://username:password@localhost:5432/dbname"
 
-# Better Auth Configuration
-BETTER_AUTH_SECRET="your-better-auth-secret-key"
+# Better Auth
+BETTER_AUTH_SECRET="your-better-auth-secret"
 BETTER_AUTH_URL="http://localhost:3000"
+NEXT_PUBLIC_BETTER_AUTH_URL="http://localhost:3000"
 
-# Google OAuth Credentials
-GOOGLE_CLIENT_ID="your-google-oauth-client-id"
-GOOGLE_CLIENT_SECRET="your-google-oauth-client-secret"
+# Google OAuth
+GOOGLE_CLIENT_ID="your-google-client-id"
+GOOGLE_CLIENT_SECRET="your-google-client-secret"
+
+# AI (OpenRouter)
+OPENROUTER_API_KEY="your-openrouter-api-key"
 ```
 
-> [!NOTE]
-> Make sure your Google OAuth credential has authorized redirect URIs containing `http://localhost:3000/api/auth/callback/google` and access scopes requested for **Gmail (modify, labels, compose, send)** and **Google Calendar**.
+> **Google OAuth:** Add `http://localhost:3000/api/auth/callback/google` as an authorized redirect URI. Enable Gmail (modify, labels, compose, send) and Google Calendar API scopes.
 
-### 3. Installation & Run
-
-Install dependencies:
+### Install & run
 
 ```bash
 pnpm install
-```
-
-Generate Prisma Client and push schemas:
-
-```bash
 pnpm prisma db push
-```
-
-Start the development server:
-
-```bash
 pnpm dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) to view the Inbox Commander dashboard.
+Open [http://localhost:3000](http://localhost:3000). Sign in to reach the dashboard.
+
+If port 3000 is already in use, stop the existing process or use the port Next.js assigns.
 
 ---
 
-## 🧼 Code Quality & Formatting
+## Navigation
 
-We use [Biome](https://biomejs.dev/) for fast linting and code formatting:
+The sidebar is the primary navigation — Gmail views are opened via URL query params:
 
-- **Lint checks**: `pnpm lint`
-- **Format code**: `pnpm format`
+| Sidebar item | Route |
+|--------------|-------|
+| Dashboard | `/dashboard` |
+| Google Calendar | `/calendar` |
+| Sent Emails | `/gmail` |
+| Drafts | `/gmail?tab=drafts` |
+| Starred | `/gmail?tab=starred` |
+| Important | `/gmail?tab=important` |
+| Snoozed | `/gmail?tab=snoozed` |
+| Spam | `/gmail?tab=spam` |
+| Purchases | `/gmail?tab=purchases` |
+| Trash | `/gmail?tab=trash` |
+| AI Assistant | `/chat` |
+
+---
+
+## Scripts
+
+| Command | Description |
+|---------|-------------|
+| `pnpm dev` | Start dev server (Turbopack) |
+| `pnpm build` | Generate Prisma client and production build |
+| `pnpm start` | Run production server |
+| `pnpm lint` | Biome lint check |
+| `pnpm format` | Biome format write |
+
+---
+
+## Database & Corsair
+
+PostgreSQL stores Better Auth users/sessions and Corsair integration state:
+
+- **User / Session / Account** — authentication
+- **CorsairIntegration** — Gmail and Calendar plugin config
+- **CorsairAccount** — per-user Google token binding
+- **CorsairEntity / CorsairEvent** — sync telemetry and webhooks
+
+See `prisma/schema.prisma` for the full schema.
+
+---
+
+## License
+
+MIT License — open source, contributions welcome.
