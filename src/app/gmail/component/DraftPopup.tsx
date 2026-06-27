@@ -1,17 +1,16 @@
 "use client";
 
-import { useGmailDraft } from "@/hooks/useCreateGmailDraft";
+import { useGmailDrafts } from "@/hooks/useCreateGmailDraft";
 import { useState } from "react";
 import { buildRawEmail } from "./gmail-utils";
 
-interface PopupProps {
+interface DraftPopupProps {
   onClose: () => void;
   setShowCreate: (show: boolean) => void;
-  showCreate: boolean;
 }
 
-export default function Popup({ onClose, setShowCreate }: PopupProps) {
-  const { sendDirect, isSendingDirect, sendDirectError } = useGmailDraft();
+export default function DraftPopup({ onClose, setShowCreate }: DraftPopupProps) {
+  const { createDraft, isCreatingDraft, createDraftError } = useGmailDrafts();
 
   const [to, setTo] = useState("");
   const [subject, setSubject] = useState("");
@@ -26,10 +25,10 @@ export default function Popup({ onClose, setShowCreate }: PopupProps) {
     color: "var(--text-primary)",
   };
 
-  const handleSendEmail = async () => {
+  const handleSaveDraft = () => {
     const raw = buildRawEmail({ to, subject, message });
 
-    sendDirect(
+    createDraft(
       { raw },
       {
         onSuccess: () => {
@@ -62,28 +61,25 @@ export default function Popup({ onClose, setShowCreate }: PopupProps) {
           boxShadow: "0 0 40px rgba(200,241,53,0.04)",
         }}
       >
-        {/* Header */}
         <div className="flex items-center justify-between">
           <div>
             <span
               className="text-[9px] font-extrabold tracking-widest uppercase font-mono"
               style={{ color: "var(--lime)" }}
             >
-              New Email
+              New Draft
             </span>
-
             <h2
               className="text-sm font-bold mt-0.5"
               style={{ color: "var(--text-primary)" }}
             >
-              Send Direct Email
+              Save Email Draft
             </h2>
-
             <p
               className="text-[10px] font-mono mt-0.5"
               style={{ color: "var(--text-secondary)" }}
             >
-              Compose and send an email instantly
+              Compose and save to Gmail drafts
             </p>
           </div>
 
@@ -110,11 +106,10 @@ export default function Popup({ onClose, setShowCreate }: PopupProps) {
           </button>
         </div>
 
-        {/* Form */}
         <form
           onSubmit={(e) => {
             e.preventDefault();
-            handleSendEmail();
+            handleSaveDraft();
           }}
           className="space-y-4"
         >
@@ -125,7 +120,6 @@ export default function Popup({ onClose, setShowCreate }: PopupProps) {
             >
               Recipient
             </label>
-
             <input
               type="email"
               required
@@ -145,7 +139,6 @@ export default function Popup({ onClose, setShowCreate }: PopupProps) {
             >
               Subject
             </label>
-
             <input
               type="text"
               required
@@ -164,19 +157,18 @@ export default function Popup({ onClose, setShowCreate }: PopupProps) {
             >
               Message
             </label>
-
             <textarea
               required
               rows={6}
               value={message}
               onChange={(e) => setMessage(e.target.value)}
-              placeholder="Write your email..."
+              placeholder="Write your draft..."
               className={`${inputClass} resize-none`}
               style={inputStyle}
             />
           </div>
 
-          {sendDirectError && (
+          {createDraftError && (
             <div
               className="text-xs p-3 rounded-xl"
               style={{
@@ -185,9 +177,9 @@ export default function Popup({ onClose, setShowCreate }: PopupProps) {
                 color: "#f87171",
               }}
             >
-              {sendDirectError instanceof Error
-                ? sendDirectError.message
-                : "Failed to send email."}
+              {createDraftError instanceof Error
+                ? createDraftError.message
+                : "Failed to save draft."}
             </div>
           )}
 
@@ -210,36 +202,11 @@ export default function Popup({ onClose, setShowCreate }: PopupProps) {
 
             <button
               type="submit"
-              disabled={isSendingDirect}
+              disabled={isCreatingDraft}
               className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-[10px] font-extrabold uppercase tracking-widest transition active:scale-[0.98] disabled:opacity-50"
               style={{ background: "var(--lime)", color: "var(--bg-base)" }}
             >
-              {isSendingDirect ? (
-                <>
-                  <svg
-                    className="animate-spin h-3.5 w-3.5"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                  >
-                    <circle
-                      className="opacity-25"
-                      cx="12"
-                      cy="12"
-                      r="10"
-                      stroke="currentColor"
-                      strokeWidth="4"
-                    />
-                    <path
-                      className="opacity-75"
-                      fill="currentColor"
-                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                    />
-                  </svg>
-                  Sending...
-                </>
-              ) : (
-                "Send Email"
-              )}
+              {isCreatingDraft ? "Saving..." : "Save Draft"}
             </button>
           </div>
         </form>
