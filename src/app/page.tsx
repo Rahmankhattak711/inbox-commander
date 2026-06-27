@@ -1,7 +1,9 @@
 "use client";
 
 import Link from "next/link";
+import { motion, useReducedMotion } from "motion/react";
 import { useState } from "react";
+
 
 const features = [
   {
@@ -129,6 +131,60 @@ const testimonials = [
     handle: "@mchen_dev",
     metrics: "<50ms Execution Time",
   },
+  {
+    quote:
+      "Commander replaced three tools I was juggling. The AI drafts are eerily on-point, and the calendar sync is instantaneous. My team lead asked why I respond so fast now — I just smiled.",
+    author: "Priya Nair",
+    role: "Senior DevOps Architect",
+    company: "Helios Cloud",
+    handle: "@pnair_ops",
+    metrics: "3 Tools Replaced",
+  },
+  {
+    quote:
+      "Running 12 Google Workspaces for our portfolio companies used to require a dedicated ops person. Now it's one terminal, one context. The multi-tenant isolation is enterprise-grade.",
+    author: "Jordan Osei",
+    role: "VC Portfolio Operator",
+    company: "Meridian Ventures",
+    handle: "@j_osei_vc",
+    metrics: "12 Workspaces Unified",
+  },
+  {
+    quote:
+      "The Corsair engine latency is no joke. I've stress-tested it against high-volume inboxes with 400+ daily threads and it never skips a beat. This is the infra I wished Gmail had built.",
+    author: "Sven Larsen",
+    role: "Platform Reliability Engineer",
+    company: "NordStack",
+    handle: "@s_larsen_sre",
+    metrics: "400+ Threads/day",
+  },
+  {
+    quote:
+      "Inbox Commander turned my morning email chaos into a structured command session. The keyboard macros alone are worth the upgrade — I never touch the mouse for email anymore.",
+    author: "Chloe Dupont",
+    role: "Growth Product Manager",
+    company: "Luminary SaaS",
+    handle: "@cdupont_pm",
+    metrics: "Mouse-free Workflow",
+  },
+  {
+    quote:
+      "I was skeptical about AI email drafting until I saw Commander's context awareness. It reads the thread, respects tone, and even matches my writing style. Shipped three client decks without editing a word.",
+    author: "Riku Takahashi",
+    role: "Freelance Tech Consultant",
+    company: "Self-Employed",
+    handle: "@riku_builds",
+    metrics: "0 Draft Edits Needed",
+  },
+  {
+    quote:
+      "The zero-retention compliance mode was the deciding factor for our legal team. We needed zero persistence and instant revocation — Commander delivered on day one without any configuration theater.",
+    author: "Amara Okonkwo",
+    role: "Chief Compliance Officer",
+    company: "LexShield Corp",
+    handle: "@amara_cco",
+    metrics: "Zero Retention Certified",
+  },
 ];
 
 const tiers = [
@@ -190,6 +246,109 @@ const faqs = [
     a: "It is our proprietary underlying system designed for low-latency state synchronizations with Google APIs, turning clunky network requests into immediate local UI mutations.",
   },
 ];
+
+function TestimonialCard({
+  t,
+}: {
+  t: {
+    quote: string;
+    author: string;
+    role: string;
+    company: string;
+    metrics: string;
+  };
+}) {
+  return (
+    <div
+      className="p-6 rounded-2xl border flex flex-col justify-between space-y-4 overflow-hidden relative"
+      style={{ background: "var(--bg-card)", borderColor: "var(--border)" }}
+    >
+
+
+      {/* Stars */}
+      <div className="relative z-10 space-y-4">
+        <div className="flex items-center gap-1.5">
+          {[...Array(5)].map((_, i) => (
+            <motion.span
+              key={i}
+              style={{ color: "var(--lime)", display: "inline-block" }}
+              initial={{ opacity: 0, y: -4 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ delay: i * 0.06, duration: 0.3 }}
+              viewport={{ once: true }}
+            >
+              ★
+            </motion.span>
+          ))}
+        </div>
+        <p
+          className="text-[12px] leading-relaxed"
+          style={{ color: "var(--text-secondary)" }}
+        >
+          &ldquo;{t.quote}&rdquo;
+        </p>
+      </div>
+
+      {/* Footer */}
+      <div className="relative z-10 pt-4 border-t border-[var(--border)] flex items-center justify-between">
+        <div>
+          <div
+            className="text-xs font-extrabold"
+            style={{ color: "var(--text-primary)" }}
+          >
+            {t.author}
+          </div>
+          <div className="text-[10px] opacity-60 truncate max-w-[160px]">
+            {t.role} <span style={{ color: "var(--lime)" }}>·</span> {t.company}
+          </div>
+        </div>
+        <div className="text-[9px] font-mono text-[var(--lime)] text-right">
+          {t.metrics}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/** Infinite vertical marquee driven by Motion — no CSS keyframes needed */
+function MarqueeColumn({
+  items,
+  direction,
+  duration,
+  className = "",
+}: {
+  items: (typeof testimonials)[number][];
+  direction: "up" | "down";
+  duration: number;
+  className?: string;
+}) {
+  const shouldReduce = useReducedMotion();
+  const doubled = [...items, ...items];
+  // "down" = cards appear from top → animate from 0 to -50%
+  // "up"   = cards appear from bottom → animate from -50% to 0
+  const fromY = direction === "down" ? "0%" : "-50%";
+  const toY   = direction === "down" ? "-50%" : "0%";
+
+  return (
+    <div className={`overflow-hidden ${className}`}>
+      <motion.div
+        className="flex flex-col gap-5"
+        animate={shouldReduce ? undefined : { y: [fromY, toY] }}
+        transition={{
+          duration,
+          ease: "linear",
+          repeat: Infinity,
+          repeatType: "loop",
+        }}
+      >
+        {doubled.map((t, idx) => (
+          <TestimonialCard key={`${direction}-${idx}`} t={t} />
+        ))}
+      </motion.div>
+    </div>
+  );
+}
+
 
 export default function LandingPage() {
   const [to, setTo] = useState("investors@corsair.engine");
@@ -384,7 +543,7 @@ export default function LandingPage() {
         <div className="relative z-10 max-w-4xl mx-auto space-y-8 animate-fade-in-up">
           {/* Badge */}
           <div
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-[9px] font-extrabold uppercase tracking-widest font-mono"
+            className="inline-flex uppercase items-center gap-2 px-4 py-2 rounded-full text-[9px] font-extrabold tracking-widest font-mono"
             style={{
               background: "rgba(200,241,53,0.08)",
               border: "1px solid rgba(200,241,53,0.2)",
@@ -395,12 +554,15 @@ export default function LandingPage() {
               className="w-1.5 h-1.5 rounded-full animate-pulse"
               style={{ background: "var(--lime)" }}
             />
-            The Productivity Revolution Starts Here
+            Schedule meetings naturally | Reply to emails | draft emails |
+            Manage your day
           </div>
 
           {/* Headline */}
-          <h1 className="text-5xl md:text-7xl font-extrabold tracking-tight leading-none uppercase">
-            <span style={{ color: "var(--text-primary)" }}>Inbox</span>
+          <h1 className="text-7xl md:text-7xl font-extrabold tracking-tight leading-none">
+            <span style={{ color: "var(--text-primary)" }}>
+              Your AI agent for
+            </span>
             <br />
             <span
               className="animate-glow-pulse"
@@ -409,7 +571,7 @@ export default function LandingPage() {
                 textShadow: "0 0 40px rgba(200,241,53,0.3)",
               }}
             >
-              Commander
+              email and calendar.
             </span>
           </h1>
 
@@ -418,8 +580,9 @@ export default function LandingPage() {
             className="text-sm md:text-base max-w-lg mx-auto leading-relaxed"
             style={{ color: "var(--text-secondary)" }}
           >
-            Your all-in-one control panel for Gmail drafts and Google Calendar.
-            Compose, schedule, and delete — all from one blazing-fast interface.
+            Inbox Commander Gmail and Google Calendar through an AI agent that
+            drafts, schedules, and triages — and always waits for your approval
+            before acting.
           </p>
 
           {/* CTA Row */}
@@ -469,7 +632,7 @@ export default function LandingPage() {
             className="text-[10px] font-mono"
             style={{ color: "var(--text-muted)" }}
           >
-            Secured with Google OAuth · Built on Next.js 16 · Powered by Corsair
+            Corsair MCP · OpenAI Agents · Real-time Webhooks · OAuth 2.0
           </p>
         </div>
       </section>
@@ -794,78 +957,84 @@ export default function LandingPage() {
         style={{ background: "var(--bg-surface)" }}
       >
         <div className="max-w-6xl mx-auto space-y-14">
-          <div className="text-center space-y-3">
-            <span
+         <motion.div
+            className="text-center space-y-3"
+            initial={{ opacity: 0, y: 16 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, ease: "easeOut" }}
+            viewport={{ once: true }}
+          >
+            <motion.span
               className="text-[9px] font-extrabold tracking-widest uppercase font-mono"
               style={{ color: "var(--lime)" }}
+              initial={{ opacity: 0 }}
+              whileInView={{ opacity: 1 }}
+              transition={{ delay: 0.1, duration: 0.5 }}
+              viewport={{ once: true }}
             >
               Success Stories
-            </span>
-            <h2
+            </motion.span>
+            <motion.h2
               className="text-2xl md:text-3xl font-extrabold uppercase tracking-tight"
               style={{ color: "var(--text-primary)" }}
+              initial={{ opacity: 0, y: 10 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2, duration: 0.5 }}
+              viewport={{ once: true }}
             >
               Built by teams that ship fast
-            </h2>
-            <p
+            </motion.h2>
+            <motion.p
               className="text-sm max-w-md mx-auto"
               style={{ color: "var(--text-secondary)" }}
+              initial={{ opacity: 0, y: 8 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3, duration: 0.5 }}
+              viewport={{ once: true }}
             >
               See how leading teams use Inbox Commander to cut email noise and
               deliver with confidence.
-            </p>
-          </div>
+            </motion.p>
+          </motion.div>
 
-          <div className="grid md:grid-cols-3 gap-6">
-            {testimonials.map((t, idx) => (
-              <div
-                key={idx}
-                className="group p-6 rounded-2xl border border-[var(--border)] hover:border-[rgba(200,241,53,0.3)] flex flex-col justify-between space-y-4 transition-all duration-300 overflow-hidden relative"
-                style={{ background: "var(--bg-card)" }}
-              >
-                <div
-                  className="absolute inset-0 opacity-0 group-hover:opacity-20 transition-opacity"
-                  style={{
-                    background:
-                      "linear-gradient(135deg, var(--lime), transparent)",
-                  }}
-                />
-                <div className="relative z-10 space-y-4">
-                  <div className="flex items-center gap-2">
-                    {[...Array(5)].map((_, i) => (
-                      <span key={i} style={{ color: "var(--lime)" }}>
-                        ★
-                      </span>
-                    ))}
-                  </div>
-                  <p
-                    className="text-[12px] leading-relaxed"
-                    style={{ color: "var(--text-secondary)" }}
-                  >
-                    "{t.quote}"
-                  </p>
-                </div>
+          {/* Three-column marquee powered by Motion: down · up · down */}
+          <motion.div
+            className="grid grid-cols-1 md:grid-cols-3 gap-5"
+            style={{
+              height: "640px",
+              maskImage:
+                "linear-gradient(to bottom, transparent 0%, black 10%, black 90%, transparent 100%)",
+              WebkitMaskImage:
+                "linear-gradient(to bottom, transparent 0%, black 10%, black 90%, transparent 100%)",
+            }}
+            initial={{ opacity: 0, y: 24 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.7, ease: "easeOut", delay: 0.15 }}
+            viewport={{ once: true, amount: 0.1 }}
+          >
+            {/* Col 1 — down, 30s */}
+            <MarqueeColumn
+              items={testimonials.slice(0, 5)}
+              direction="down"
+              duration={30}
+            />
 
-                <div className="relative z-10 pt-4 border-t border-[var(--border)] flex items-center justify-between">
-                  <div>
-                    <div
-                      className="text-xs font-extrabold"
-                      style={{ color: "var(--text-primary)" }}
-                    >
-                      {t.author}
-                    </div>
-                    <div className="text-[10px] opacity-60 truncate max-w-[140px]">
-                      {t.role} <span style={{ color: "var(--lime)" }}>·</span>{" "}
-                      {t.company}
-                    </div>
-                  </div>
-                  <div className="text-[9px] font-mono text-[var(--lime)]">
-                    {t.metrics}
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
+            {/* Col 2 — up, 24s */}
+            <MarqueeColumn
+              items={testimonials.slice(2, 8)}
+              direction="up"
+              duration={24}
+              className="hidden md:block"
+            />
+
+            {/* Col 3 — down, 36s */}
+            <MarqueeColumn
+              items={testimonials.slice(4)}
+              direction="down"
+              duration={36}
+              className="hidden md:block"
+            />
+          </motion.div>
         </div>
       </section>
 
@@ -1051,7 +1220,7 @@ export default function LandingPage() {
               className="text-[9px] font-extrabold tracking-widest uppercase font-mono"
               style={{ color: "var(--lime)" }}
             >
-              Quick Start
+              How it works
             </span>
             <h2
               className="text-2xl md:text-3xl font-extrabold uppercase tracking-tight"
@@ -1142,7 +1311,7 @@ export default function LandingPage() {
               className="text-2xl md:text-3xl font-extrabold uppercase tracking-tight"
               style={{ color: "var(--text-primary)" }}
             >
-              System Manifest / FAQ
+              Frequently Asked Questions
             </h2>
           </div>
 
