@@ -3,6 +3,7 @@
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { authClient } from "@/lib/auth-client";
+import { Suspense } from "react";
 import Sidebar from "./Sidebar";
 
 const PUBLIC_ROUTES = ["/", "/login", "/signup"];
@@ -46,7 +47,9 @@ export default function LayoutWrapper({ children }: { children: React.ReactNode 
 
   return (
     <div className="flex min-h-screen" style={{ background: "var(--bg-base)", color: "var(--text-primary)" }}>
-      <Sidebar />
+      <Suspense fallback={<aside className="w-60 shrink-0" style={{ borderRight: "1px solid var(--border)" }} />}>
+        <Sidebar />
+      </Suspense>
       <main className="flex-1 h-screen overflow-y-auto flex flex-col">
         {children}
       </main>
