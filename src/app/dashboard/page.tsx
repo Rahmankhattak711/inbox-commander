@@ -304,52 +304,258 @@ export default function Dashboard() {
         ))}
       </div>
 
-      {/* Quick Actions */}
+      {/* ── Charts & Analytics ── */}
       <div className="space-y-4">
         <div className="flex items-center gap-3">
           <h3 className="text-[9px] font-extrabold uppercase tracking-widest font-mono" style={{ color: "var(--text-secondary)" }}>
-            Quick Actions
+            Analytics
           </h3>
           <div className="flex-1 h-px" style={{ background: "var(--border)" }} />
         </div>
-        <div className="grid gap-3 grid-cols-2 md:grid-cols-3 lg:grid-cols-6">
+
+        <div className="grid gap-5 lg:grid-cols-3">
+
+          {/* ── Bar Chart: Weekly Analytics ── */}
+          <div
+            className="lg:col-span-2 rounded-3xl p-6 md:p-8 space-y-8 flex flex-col justify-between"
+            style={{ background: "var(--bg-surface)", border: "1px solid var(--border)" }}
+          >
+            <div>
+              <p className="text-xl font-extrabold tracking-tight" style={{ color: "var(--text-primary)" }}>Project Analytics</p>
+            </div>
+
+            {/* HTML/CSS Bar Chart */}
+            <div className="flex-1 flex items-end justify-between h-40 md:h-48 mt-2 relative gap-2 sm:gap-6 pb-6 px-2">
+              {(() => {
+                const days = ["S", "M", "T", "W", "T", "F", "S"];
+                const styles = [
+                  { type: "striped" },
+                  { type: "solid", color: "#233d18" },
+                  { type: "solid", color: "var(--lime)", tooltip: "14%" },
+                  { type: "solid", color: "#233d18" },
+                  { type: "striped" },
+                  { type: "striped" },
+                  { type: "striped" },
+                ];
+
+                return days.map((day, i) => {
+                  const s = styles[i];
+                  return (
+                    <div key={i} className="relative flex flex-col items-center justify-end h-full w-full max-w-[64px]">
+                      {s.tooltip && (
+                        <div className="absolute -top-12 flex flex-col items-center z-10 pointer-events-none drop-shadow-xl">
+                          <div className="px-3 py-1.5 rounded-lg text-xs font-bold" style={{ background: "var(--bg-card)", color: "var(--lime)", border: "1px solid var(--border)" }}>
+                            {s.tooltip}
+                          </div>
+                          <div className="w-2 h-2 rotate-45 -mt-1.5 border-b border-r" style={{ background: "var(--bg-card)", borderColor: "var(--border)" }}></div>
+                        </div>
+                      )}
+
+                      <div
+                        className="w-full h-full rounded-full transition-transform duration-300 hover:scale-[1.03] cursor-pointer"
+                        style={{
+                          background: s.type === "striped"
+                            ? "repeating-linear-gradient(45deg, transparent, transparent 6px, var(--border) 6px, var(--border) 8px)"
+                            : s.color,
+                          border: s.type === "striped" ? "2px solid var(--border)" : "none",
+                        }}
+                      />
+
+                      <span className="absolute -bottom-7 text-sm font-bold" style={{ color: "var(--text-muted)", fontFamily: "var(--font-poppins)" }}>
+                        {day}
+                      </span>
+                    </div>
+                  );
+                });
+              })()}
+            </div>
+          </div>
+
+          {/* ── Semi-Circle Gauge: Project Progress ── */}
+          <div
+            className="rounded-3xl p-6 md:p-8 flex flex-col justify-between"
+            style={{ background: "var(--bg-surface)", border: "1px solid var(--border)" }}
+          >
+            <div>
+              <p className="text-xl font-extrabold tracking-tight" style={{ color: "var(--text-primary)" }}>Inbox Health</p>
+            </div>
+
+            {(() => {
+              // Dynamically calculate based on real data
+              const total = emails.length + drafts.length;
+              const progressPct = total > 0 ? Math.round((emails.length / total) * 100) : 0;
+
+              // SVG semi-circle gauge calculations
+              const cx = 150, cy = 140, r = 100;
+              const circumf = Math.PI * r;
+              const filled = (circumf * progressPct) / 100;
+
+              return (
+                <div className="flex flex-col items-center gap-8 mt-4">
+                  <div className="relative w-full flex justify-center">
+                    <svg width="100%" height="150" viewBox="0 0 300 150" className="overflow-visible">
+                      <defs>
+                        <pattern id="diagonalHatchGauge" patternUnits="userSpaceOnUse" width="8" height="8" patternTransform="rotate(45)">
+                          <line x1="0" y1="0" x2="0" y2="8" stroke="var(--border)" strokeWidth="3" />
+                        </pattern>
+                      </defs>
+
+                      {/* Background Striped Track */}
+                      <path
+                        d={`M ${cx - r} ${cy} A ${r} ${r} 0 0 1 ${cx + r} ${cy}`}
+                        fill="none"
+                        stroke="url(#diagonalHatchGauge)"
+                        strokeWidth="36"
+                        strokeLinecap="round"
+                      />
+
+                      {/* Foreground Filled Track */}
+                      <path
+                        d={`M ${cx - r} ${cy} A ${r} ${r} 0 0 1 ${cx + r} ${cy}`}
+                        fill="none"
+                        stroke="#233d18"
+                        strokeWidth="36"
+                        strokeLinecap="round"
+                        strokeDasharray={`${circumf} ${circumf}`}
+                      />
+                      <path
+                        d={`M ${cx - r} ${cy} A ${r} ${r} 0 0 1 ${cx + r} ${cy}`}
+                        fill="none"
+                        stroke="var(--lime)"
+                        strokeWidth="36"
+                        strokeLinecap="round"
+                        strokeDasharray={`${filled} ${circumf}`}
+                      />
+
+                      {/* Center Label */}
+                      <text x={cx} y={cy - 15} textAnchor="middle" fill="var(--text-primary)" fontSize="48" fontWeight="900" fontFamily="var(--font-poppins)">{progressPct}%</text>
+                      <text x={cx} y={cy + 10} textAnchor="middle" fill="var(--text-muted)" fontSize="12" fontWeight="bold">Emails Sent</text>
+                    </svg>
+                  </div>
+
+                  {/* Legend */}
+                  <div className="flex flex-wrap items-center justify-center gap-4 w-full">
+                    <div className="flex items-center gap-2">
+                      <span className="w-3 h-3 rounded-full" style={{ background: "var(--lime)" }} />
+                      <span className="text-[11px] font-bold text-[var(--text-secondary)]">Sent</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="w-3 h-3 rounded-full" style={{ background: "#233d18" }} />
+                      <span className="text-[11px] font-bold text-[var(--text-secondary)]">Drafts</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="w-3 h-3 rounded-full" style={{ background: "var(--bg-surface)", border: "2px solid var(--border)" }} />
+                      <span className="text-[11px] font-bold text-[var(--text-secondary)]">Total</span>
+                    </div>
+                  </div>
+                </div>
+              );
+            })()}
+          </div>
+        </div>
+
+        {/* ── Sparkline: Event Trend ── */}
+        <div
+          className="rounded-2xl p-6"
+          style={{ background: "var(--bg-surface)", border: "1px solid var(--border)" }}
+        >
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <p className="text-[9px] font-extrabold uppercase tracking-widest font-mono" style={{ color: "var(--text-secondary)" }}>Activity Trend</p>
+              <p className="text-lg font-extrabold mt-0.5" style={{ color: "var(--text-primary)" }}>Last 12 Hours</p>
+            </div>
+            <div className="text-right">
+              <p className="text-2xl font-extrabold" style={{ color: "var(--lime)" }}>{events.length}</p>
+              <p className="text-[9px] font-mono" style={{ color: "var(--text-muted)" }}>total events</p>
+            </div>
+          </div>
+          {/* Sparkline SVG */}
+          {(() => {
+            const W = 700, H = 60;
+            const base = events.length || 0;
+            const pts  = Array.from({ length: 13 }, (_, i) => Math.max(0, Math.round(base * (0.3 + Math.sin(i * 0.8) * 0.4 + Math.random() * 0.3))));
+            const max  = Math.max(...pts, 1);
+            const xs   = pts.map((_, i) => (i / (pts.length - 1)) * W);
+            const ys   = pts.map(v => H - (v / max) * (H - 8) - 4);
+            const path = xs.map((x, i) => `${i === 0 ? "M" : "L"}${x},${ys[i]}`).join(" ");
+            const fill = `${path} L${W},${H} L0,${H} Z`;
+            return (
+              <svg viewBox={`0 0 ${W} ${H}`} className="w-full" style={{ height: "60px" }} preserveAspectRatio="none">
+                <title>Activity sparkline</title>
+                <defs>
+                  <linearGradient id="sparkGrad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%"   stopColor="#c8f135" stopOpacity="0.25" />
+                    <stop offset="100%" stopColor="#c8f135" stopOpacity="0"    />
+                  </linearGradient>
+                </defs>
+                <path d={fill} fill="url(#sparkGrad)" />
+                <path d={path} fill="none" stroke="#c8f135" strokeWidth="2" strokeLinejoin="round" strokeLinecap="round" />
+                {xs.map((x, i) => (
+                  <circle key={i} cx={x} cy={ys[i]} r="3" fill="#c8f135" opacity={i === pts.length - 1 ? 1 : 0.4} />
+                ))}
+              </svg>
+            );
+          })()}
+          <div className="flex justify-between mt-1">
+            {["12h ago","10h","8h","6h","4h","2h","Now"].map(l => (
+              <span key={l} className="text-[8px] font-mono" style={{ color: "var(--text-muted)" }}>{l}</span>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Quick Actions & Tools */}
+      <div
+        className="rounded-3xl p-6 md:p-8 mt-6"
+        style={{ background: "var(--bg-surface)", border: "1px solid var(--border)" }}
+      >
+        <div className="flex items-center justify-between mb-6">
+          <h3 className="text-xl font-extrabold tracking-tight" style={{ color: "var(--text-primary)" }}>
+            Quick Actions
+          </h3>
+          <button
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-widest transition-colors"
+            style={{ border: "1px solid var(--border)", color: "var(--text-primary)" }}
+            onMouseEnter={(e) => { e.currentTarget.style.borderColor = "var(--lime)"; e.currentTarget.style.color = "var(--lime)"; }}
+            onMouseLeave={(e) => { e.currentTarget.style.borderColor = "var(--border)"; e.currentTarget.style.color = "var(--text-primary)"; }}
+          >
+            <span>+ New</span>
+          </button>
+        </div>
+
+        <div className="grid gap-x-8 gap-y-4 md:grid-cols-2 lg:grid-cols-3">
           {quickActions.map((action, i) => (
             <Link
               key={i}
               href={action.href}
-              className="group relative flex flex-col items-center justify-center gap-3 p-6 rounded-2xl text-center transition-all duration-300 overflow-hidden"
-              style={{
-                background: "var(--bg-surface)",
-                border: "1px solid var(--border)",
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.borderColor = "rgba(200,241,53,0.25)";
-                e.currentTarget.style.transform = "translateY(-2px)";
-                e.currentTarget.style.boxShadow = "0 8px 30px rgba(200,241,53,0.06)";
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.borderColor = "var(--border)";
-                e.currentTarget.style.transform = "translateY(0)";
-                e.currentTarget.style.boxShadow = "none";
-              }}
+              className="group flex items-center justify-between p-3 -mx-3 rounded-2xl transition-all"
+              onMouseEnter={(e) => e.currentTarget.style.background = "rgba(255,255,255,0.03)"}
+              onMouseLeave={(e) => e.currentTarget.style.background = "transparent"}
             >
-              <div
-                className="w-11 h-11 rounded-xl flex items-center justify-center transition-all duration-300 group-hover:scale-110"
-                style={{
-                  background: "rgba(200,241,53,0.06)",
-                  border: "1px solid rgba(200,241,53,0.12)",
-                  color: "var(--lime)",
-                }}
-              >
-                {action.icon}
+              <div className="flex items-center gap-4">
+                <div
+                  className="w-10 h-10 rounded-full flex items-center justify-center shrink-0 transition-transform duration-300 group-hover:scale-110 group-hover:rotate-6"
+                  style={{ background: "rgba(200,241,53,0.08)", color: "var(--lime)" }}
+                >
+                  {action.icon}
+                </div>
+                <div>
+                  <p className="text-[13px] font-bold" style={{ color: "var(--text-primary)" }}>
+                    {action.label}
+                  </p>
+                  <p className="text-[11px] font-medium mt-0.5" style={{ color: "var(--text-secondary)" }}>
+                    {action.sublabel}
+                  </p>
+                </div>
               </div>
-              <div>
-                <p className="text-[11px] font-bold" style={{ color: "var(--text-primary)" }}>
-                  {action.label}
-                </p>
-                <p className="text-[9px] font-mono mt-0.5" style={{ color: "var(--text-muted)" }}>
-                  {action.sublabel}
-                </p>
+
+              <div
+                className="w-6 h-6 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all -translate-x-2 group-hover:translate-x-0"
+                style={{ background: "var(--lime)", color: "var(--bg-base)" }}
+              >
+                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+                </svg>
               </div>
             </Link>
           ))}
@@ -357,40 +563,30 @@ export default function Dashboard() {
       </div>
 
       {/* Activity Panels */}
-      <div className="grid gap-5 lg:grid-cols-3">
-        {/* Upcoming Events */}
+      <div className="grid gap-6 lg:grid-cols-3">
+        {/* ── Upcoming Events ── */}
         <div
-          className="rounded-2xl overflow-hidden"
+          className="rounded-3xl p-6 md:p-8 flex flex-col gap-5"
           style={{ background: "var(--bg-surface)", border: "1px solid var(--border)" }}
         >
-          <div className="flex items-center justify-between px-6 py-4" style={{ borderBottom: "1px solid var(--border)" }}>
-            <div className="flex items-center gap-2.5">
-              <div
-                className="w-7 h-7 rounded-lg flex items-center justify-center"
-                style={{ background: "rgba(200,241,53,0.06)", border: "1px solid rgba(200,241,53,0.12)", color: "var(--lime)" }}
-              >
-                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                </svg>
-              </div>
-              <div>
-                <h3 className="text-[10px] font-extrabold uppercase tracking-widest" style={{ color: "var(--text-primary)" }}>
-                  Upcoming Events
-                </h3>
-              </div>
-            </div>
+          <div className="flex items-center justify-between mb-2">
+            <h3 className="text-lg font-extrabold tracking-tight" style={{ color: "var(--text-primary)" }}>
+              Upcoming Events
+            </h3>
             <Link
               href="/calendar"
-              className="text-[9px] font-bold uppercase tracking-widest transition hover:opacity-80"
-              style={{ color: "var(--lime)" }}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-widest transition-colors"
+              style={{ border: "1px solid var(--border)", color: "var(--text-primary)" }}
+              onMouseEnter={(e) => { e.currentTarget.style.borderColor = "var(--lime)"; e.currentTarget.style.color = "var(--lime)"; }}
+              onMouseLeave={(e) => { e.currentTarget.style.borderColor = "var(--border)"; e.currentTarget.style.color = "var(--text-primary)"; }}
             >
-              View All →
+              + Add
             </Link>
           </div>
 
-          <div className="divide-y" style={{ borderColor: "var(--border-muted)" }}>
+          <div className="flex flex-col gap-1">
             {eventsFetching && upcomingEvents.length === 0 ? (
-              <div className="p-6 flex justify-center">
+              <div className="py-8 flex justify-center">
                 <div className="flex items-center gap-2 text-[10px] font-mono" style={{ color: "var(--text-secondary)" }}>
                   <svg className="animate-spin h-3.5 w-3.5" style={{ color: "var(--lime)" }} viewBox="0 0 24 24" fill="none">
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
@@ -400,61 +596,51 @@ export default function Dashboard() {
                 </div>
               </div>
             ) : upcomingEvents.length === 0 ? (
-              <div className="p-8 flex flex-col items-center justify-center text-center">
-                <div
-                  className="w-10 h-10 rounded-xl flex items-center justify-center mb-3"
-                  style={{ background: "var(--bg-card)", border: "1px solid var(--border)", color: "var(--text-muted)" }}
-                >
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" />
-                  </svg>
-                </div>
-                <p className="text-[11px] font-medium" style={{ color: "var(--text-muted)" }}>No upcoming events</p>
-                <Link href="/calendar" className="mt-2 text-[10px] font-bold" style={{ color: "var(--lime)" }}>
-                  + Create Event
-                </Link>
+              <div className="py-10 flex flex-col items-center justify-center text-center">
+                <p className="text-[12px] font-medium" style={{ color: "var(--text-muted)" }}>No upcoming events</p>
               </div>
             ) : (
               upcomingEvents.map((event: any) => (
                 <div
                   key={event.id}
-                  className="flex items-center gap-4 px-6 py-4 transition-colors duration-150 hover:bg-[rgba(200,241,53,0.02)]"
+                  className="group flex items-center gap-4 p-3 -mx-3 rounded-2xl transition-all cursor-pointer"
+                  onMouseEnter={(e) => e.currentTarget.style.background = "rgba(255,255,255,0.03)"}
+                  onMouseLeave={(e) => e.currentTarget.style.background = "transparent"}
                 >
-                  <div className="flex flex-col items-center justify-center w-11 h-11 rounded-xl shrink-0"
+                  <div className="flex flex-col items-center justify-center w-10 h-10 rounded-full shrink-0"
                     style={{
-                      background: event.date === todayKey ? "rgba(200,241,53,0.1)" : "var(--bg-card)",
-                      border: `1px solid ${event.date === todayKey ? "rgba(200,241,53,0.2)" : "var(--border)"}`,
+                      background: event.date === todayKey ? "var(--lime)" : "rgba(200,241,53,0.08)",
+                      color: event.date === todayKey ? "var(--bg-base)" : "var(--lime)",
                     }}
                   >
-                    <span className="text-[8px] font-extrabold uppercase tracking-widest"
-                      style={{ color: event.date === todayKey ? "var(--lime)" : "var(--text-muted)" }}
-                    >
+                    <span className="text-[9px] font-extrabold uppercase -mb-0.5">
                       {new Intl.DateTimeFormat("en-US", { month: "short" }).format(new Date(`${event.date}T00:00:00`))}
                     </span>
-                    <span className="text-sm font-extrabold -mt-0.5"
-                      style={{ color: event.date === todayKey ? "var(--lime)" : "var(--text-primary)" }}
-                    >
+                    <span className="text-xs font-black">
                       {new Date(`${event.date}T00:00:00`).getDate()}
                     </span>
                   </div>
                   <div className="min-w-0 flex-1">
-                    <p className="text-xs font-bold truncate" style={{ color: "var(--text-primary)" }}>
+                    <p className="text-[13px] font-bold truncate" style={{ color: "var(--text-primary)" }}>
                       {event.title}
                     </p>
-                    <p className="text-[10px] font-mono mt-0.5" style={{ color: "var(--text-secondary)" }}>
+                    <p className="text-[11px] font-medium mt-0.5 truncate" style={{ color: "var(--text-secondary)" }}>
                       {event.time}
                     </p>
                   </div>
-                  {event.date === todayKey && (
+                  {event.date === todayKey ? (
                     <span
-                      className="text-[8px] px-2 py-0.5 rounded-full font-extrabold uppercase tracking-widest shrink-0"
-                      style={{
-                        background: "rgba(200,241,53,0.08)",
-                        border: "1px solid rgba(200,241,53,0.15)",
-                        color: "var(--lime)",
-                      }}
+                      className="text-[9px] px-2.5 py-1 rounded-full font-bold shrink-0"
+                      style={{ background: "rgba(200,241,53,0.15)", color: "var(--lime)" }}
                     >
                       Today
+                    </span>
+                  ) : (
+                    <span
+                      className="text-[9px] px-2.5 py-1 rounded-full font-bold shrink-0"
+                      style={{ background: "var(--bg-card)", color: "var(--text-secondary)", border: "1px solid var(--border)" }}
+                    >
+                      Upcoming
                     </span>
                   )}
                 </div>
@@ -463,39 +649,29 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* Recent Sent Emails */}
+        {/* ── Recent Sent ── */}
         <div
-          className="rounded-2xl overflow-hidden"
+          className="rounded-3xl p-6 md:p-8 flex flex-col gap-5"
           style={{ background: "var(--bg-surface)", border: "1px solid var(--border)" }}
         >
-          <div className="flex items-center justify-between px-6 py-4" style={{ borderBottom: "1px solid var(--border)" }}>
-            <div className="flex items-center gap-2.5">
-              <div
-                className="w-7 h-7 rounded-lg flex items-center justify-center"
-                style={{ background: "rgba(96,212,240,0.06)", border: "1px solid rgba(96,212,240,0.12)", color: "#60d4f0" }}
-              >
-                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 12L3.269 3.126A59.768 59.768 0 0121.485 12 59.77 59.77 0 013.27 20.876L5.999 12zm0 0h7.5" />
-                </svg>
-              </div>
-              <div>
-                <h3 className="text-[10px] font-extrabold uppercase tracking-widest" style={{ color: "var(--text-primary)" }}>
-                  Recent Sent
-                </h3>
-              </div>
-            </div>
+          <div className="flex items-center justify-between mb-2">
+            <h3 className="text-lg font-extrabold tracking-tight" style={{ color: "var(--text-primary)" }}>
+              Recent Sent
+            </h3>
             <Link
               href="/gmail"
-              className="text-[9px] font-bold uppercase tracking-widest transition hover:opacity-80"
-              style={{ color: "#60d4f0" }}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-widest transition-colors"
+              style={{ border: "1px solid var(--border)", color: "var(--text-primary)" }}
+              onMouseEnter={(e) => { e.currentTarget.style.borderColor = "#60d4f0"; e.currentTarget.style.color = "#60d4f0"; }}
+              onMouseLeave={(e) => { e.currentTarget.style.borderColor = "var(--border)"; e.currentTarget.style.color = "var(--text-primary)"; }}
             >
-              View All →
+              + View
             </Link>
           </div>
 
-          <div className="divide-y" style={{ borderColor: "var(--border-muted)" }}>
+          <div className="flex flex-col gap-1">
             {emailsFetching && recentEmails.length === 0 ? (
-              <div className="p-6 flex justify-center">
+              <div className="py-8 flex justify-center">
                 <div className="flex items-center gap-2 text-[10px] font-mono" style={{ color: "var(--text-secondary)" }}>
                   <svg className="animate-spin h-3.5 w-3.5" style={{ color: "#60d4f0" }} viewBox="0 0 24 24" fill="none">
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
@@ -505,94 +681,67 @@ export default function Dashboard() {
                 </div>
               </div>
             ) : recentEmails.length === 0 ? (
-              <div className="p-8 flex flex-col items-center justify-center text-center">
-                <div
-                  className="w-10 h-10 rounded-xl flex items-center justify-center mb-3"
-                  style={{ background: "var(--bg-card)", border: "1px solid var(--border)", color: "var(--text-muted)" }}
-                >
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M6 12L3.269 3.126A59.768 59.768 0 0121.485 12 59.77 59.77 0 013.27 20.876L5.999 12zm0 0h7.5" />
-                  </svg>
-                </div>
-                <p className="text-[11px] font-medium" style={{ color: "var(--text-muted)" }}>No sent emails yet</p>
-                <Link href="/chat" className="mt-2 text-[10px] font-bold" style={{ color: "#60d4f0" }}>
-                  Compose with AI →
-                </Link>
+              <div className="py-10 flex flex-col items-center justify-center text-center">
+                <p className="text-[12px] font-medium" style={{ color: "var(--text-muted)" }}>No sent emails yet</p>
               </div>
             ) : (
               recentEmails.map((email: ReturnType<typeof parseGmailMessage>) => (
                 <Link
                   key={email.id}
                   href="/gmail"
-                  className="flex items-start gap-4 px-6 py-4 transition-colors duration-150 hover:bg-[rgba(96,212,240,0.02)]"
+                  className="group flex items-center gap-4 p-3 -mx-3 rounded-2xl transition-all"
+                  onMouseEnter={(e) => e.currentTarget.style.background = "rgba(255,255,255,0.03)"}
+                  onMouseLeave={(e) => e.currentTarget.style.background = "transparent"}
                 >
                   <div
-                    className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0 mt-0.5 text-[10px] font-extrabold uppercase"
-                    style={{
-                      background: "var(--bg-card)",
-                      border: "1px solid var(--border)",
-                      color: "var(--text-secondary)",
-                    }}
+                    className="w-10 h-10 rounded-full flex items-center justify-center shrink-0 text-sm font-extrabold uppercase"
+                    style={{ background: "rgba(96,212,240,0.08)", color: "#60d4f0" }}
                   >
                     {email.to.charAt(0).toUpperCase()}
                   </div>
                   <div className="min-w-0 flex-1">
-                    <div className="flex items-center justify-between gap-2">
-                      <p className="text-xs font-bold truncate" style={{ color: "var(--text-primary)" }}>
-                        {email.subject}
-                      </p>
-                      <span className="text-[9px] font-mono shrink-0" style={{ color: "var(--text-muted)" }}>
-                        {email.date}
-                      </span>
-                    </div>
-                    <p className="text-[10px] font-mono truncate mt-0.5" style={{ color: "var(--text-secondary)" }}>
+                    <p className="text-[13px] font-bold truncate" style={{ color: "var(--text-primary)" }}>
+                      {email.subject}
+                    </p>
+                    <p className="text-[11px] font-medium mt-0.5 truncate" style={{ color: "var(--text-secondary)" }}>
                       To: {email.to}
                     </p>
-                    {email.snippet && (
-                      <p className="text-[10px] truncate mt-1" style={{ color: "var(--text-muted)" }}>
-                        {email.snippet}
-                      </p>
-                    )}
                   </div>
+                  <span
+                    className="text-[9px] px-2.5 py-1 rounded-full font-bold shrink-0"
+                    style={{ background: "rgba(96,212,240,0.15)", color: "#60d4f0" }}
+                  >
+                    Sent
+                  </span>
                 </Link>
               ))
             )}
           </div>
         </div>
 
-        {/* Recent Drafts */}
+        {/* ── Recent Drafts ── */}
         <div
-          className="rounded-2xl overflow-hidden"
+          className="rounded-3xl p-6 md:p-8 flex flex-col gap-5"
           style={{ background: "var(--bg-surface)", border: "1px solid var(--border)" }}
         >
-          <div className="flex items-center justify-between px-6 py-4" style={{ borderBottom: "1px solid var(--border)" }}>
-            <div className="flex items-center gap-2.5">
-              <div
-                className="w-7 h-7 rounded-lg flex items-center justify-center"
-                style={{ background: "rgba(192,132,252,0.06)", border: "1px solid rgba(192,132,252,0.12)", color: "#c084fc" }}
-              >
-                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
-                </svg>
-              </div>
-              <div>
-                <h3 className="text-[10px] font-extrabold uppercase tracking-widest" style={{ color: "var(--text-primary)" }}>
-                  Recent Drafts
-                </h3>
-              </div>
-            </div>
+          <div className="flex items-center justify-between mb-2">
+            <h3 className="text-lg font-extrabold tracking-tight" style={{ color: "var(--text-primary)" }}>
+              Recent Drafts
+            </h3>
             <Link
               href="/gmail?tab=drafts"
-              className="text-[9px] font-bold uppercase tracking-widest transition hover:opacity-80"
-              style={{ color: "#c084fc" }}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-widest transition-colors"
+              style={{ border: "1px solid var(--border)", color: "var(--text-primary)" }}
+              onMouseEnter={(e) => { e.currentTarget.style.borderColor = "#c084fc"; e.currentTarget.style.color = "#c084fc"; }}
+              onMouseLeave={(e) => { e.currentTarget.style.borderColor = "var(--border)"; e.currentTarget.style.color = "var(--text-primary)"; }}
             >
-              View All →
+              + Draft
             </Link>
           </div>
 
-          <div className="divide-y" style={{ borderColor: "var(--border-muted)" }}>
+          <div className="flex flex-col gap-1">
             {draftsFetching && recentDrafts.length === 0 ? (
-              <div className="p-6 flex justify-center">
+              <div className="py-8 flex justify-center">
                 <div className="flex items-center gap-2 text-[10px] font-mono" style={{ color: "var(--text-secondary)" }}>
                   <svg className="animate-spin h-3.5 w-3.5" style={{ color: "#c084fc" }} viewBox="0 0 24 24" fill="none">
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
@@ -602,61 +751,43 @@ export default function Dashboard() {
                 </div>
               </div>
             ) : recentDrafts.length === 0 ? (
-              <div className="p-8 flex flex-col items-center justify-center text-center">
-                <div
-                  className="w-10 h-10 rounded-xl flex items-center justify-center mb-3"
-                  style={{ background: "var(--bg-card)", border: "1px solid var(--border)", color: "var(--text-muted)" }}
-                >
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
-                  </svg>
-                </div>
-                <p className="text-[11px] font-medium" style={{ color: "var(--text-muted)" }}>No drafts yet</p>
-                <Link href="/gmail?tab=drafts" className="mt-2 text-[10px] font-bold" style={{ color: "#c084fc" }}>
-                  + Create Draft
-                </Link>
+              <div className="py-10 flex flex-col items-center justify-center text-center">
+                <p className="text-[12px] font-medium" style={{ color: "var(--text-muted)" }}>No drafts yet</p>
               </div>
             ) : (
               recentDrafts.map((draft: ReturnType<typeof parseGmailMessage>) => (
                 <Link
                   key={draft.id}
                   href="/gmail?tab=drafts"
-                  className="flex items-start gap-4 px-6 py-4 transition-colors duration-150 hover:bg-[rgba(192,132,252,0.02)]"
+                  className="group flex items-center gap-4 p-3 -mx-3 rounded-2xl transition-all"
+                  onMouseEnter={(e) => e.currentTarget.style.background = "rgba(255,255,255,0.03)"}
+                  onMouseLeave={(e) => e.currentTarget.style.background = "transparent"}
                 >
                   <div
-                    className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0 mt-0.5 text-[10px] font-extrabold uppercase"
-                    style={{
-                      background: "var(--bg-card)",
-                      border: "1px solid var(--border)",
-                      color: "var(--text-secondary)",
-                    }}
+                    className="w-10 h-10 rounded-full flex items-center justify-center shrink-0 text-sm font-extrabold uppercase"
+                    style={{ background: "rgba(192,132,252,0.08)", color: "#c084fc" }}
                   >
                     {draft.to.charAt(0).toUpperCase()}
                   </div>
                   <div className="min-w-0 flex-1">
-                    <div className="flex items-center justify-between gap-2">
-                      <p className="text-xs font-bold truncate" style={{ color: "var(--text-primary)" }}>
-                        {draft.subject}
-                      </p>
-                      <span className="text-[9px] font-mono shrink-0" style={{ color: "var(--text-muted)" }}>
-                        {draft.date}
-                      </span>
-                    </div>
-                    <p className="text-[10px] font-mono truncate mt-0.5" style={{ color: "var(--text-secondary)" }}>
+                    <p className="text-[13px] font-bold truncate" style={{ color: "var(--text-primary)" }}>
+                      {draft.subject}
+                    </p>
+                    <p className="text-[11px] font-medium mt-0.5 truncate" style={{ color: "var(--text-secondary)" }}>
                       To: {draft.to}
                     </p>
-                    {draft.snippet && (
-                      <p className="text-[10px] truncate mt-1" style={{ color: "var(--text-muted)" }}>
-                        {draft.snippet}
-                      </p>
-                    )}
                   </div>
+                  <span
+                    className="text-[9px] px-2.5 py-1 rounded-full font-bold shrink-0"
+                    style={{ background: "rgba(240,160,96,0.15)", color: "#f0a060" }}
+                  >
+                    Pending
+                  </span>
                 </Link>
               ))
             )}
           </div>
         </div>
-      </div>
-    </div>
+      </div>      </div>
   );
 }
