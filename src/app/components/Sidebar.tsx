@@ -151,21 +151,21 @@ function NavLink({
               color: "var(--text-secondary)",
             }
       }
-      className="flex items-center gap-3 px-4 py-2.5 rounded-xl text-xs font-semibold border transition-all duration-200 hover:opacity-100 group"
+      className="flex items-center gap-3 px-4 py-3 rounded-2xl text-[11px] font-bold border transition-all duration-300 hover:opacity-100 group"
     >
       <span
         style={{ color: active ? "var(--lime)" : "var(--text-muted)" }}
-        className="group-hover:text-[var(--lime)] transition-colors"
+        className="group-hover:text-[var(--lime)] group-hover:scale-110 transition-all duration-300"
       >
         {item.icon}
       </span>
-      <span className="tracking-wide uppercase text-[10px] font-bold truncate">
+      <span className="tracking-widest uppercase truncate">
         {item.name}
       </span>
       {active && (
         <span
           className="ml-auto w-1.5 h-1.5 rounded-full shrink-0"
-          style={{ background: "var(--lime)", boxShadow: "0 0 6px var(--lime)" }}
+          style={{ background: "var(--lime)", boxShadow: "0 0 8px var(--lime)" }}
         />
       )}
     </Link>
@@ -205,7 +205,7 @@ export default function Sidebar() {
   return (
     <aside
       style={{ background: "var(--bg-surface)", borderRight: "1px solid var(--border)" }}
-      className="w-60 flex flex-col p-5 h-screen sticky top-0 shrink-0"
+      className="w-72 flex flex-col p-5 h-screen sticky top-0 shrink-0"
     >
       <div className="flex items-center gap-3 px-1 mb-6 shrink-0">
         <div
