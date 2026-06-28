@@ -205,7 +205,7 @@ export default function Sidebar() {
   return (
     <aside
       style={{ background: "var(--bg-surface)", borderRight: "1px solid var(--border)" }}
-      className="w-72 flex flex-col p-5 h-screen sticky top-0 shrink-0"
+      className="w-60 flex flex-col p-5 h-screen sticky top-0 shrink-0"
     >
       <div className="flex items-center gap-3 px-1 mb-6 shrink-0">
         <div
