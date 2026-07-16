@@ -940,7 +940,6 @@ export default function Chat() {
                     className="px-5 py-3 rounded-2xl text-xs font-semibold shadow-sm leading-relaxed border"
                     style={{
                       background: "var(--lime-glow)",
-                      borderColor: "rgba(200, 241, 53, 0.2)",
                       color: "var(--lime)",
                     }}
                   >
