@@ -1,17 +1,17 @@
 @import "tailwindcss";
 
 :root {
-  --bg-base: #080d05;
-  --bg-surface: #0e1609;
-  --bg-card: #111c0c;
-  --border: #1a2d12;
-  --border-muted: #152309;
-  --lime: #c8f135;
-  --lime-dim: #a0c428;
-  --lime-glow: rgba(200, 241, 53, 0.08);
-  --text-primary: #f0f5e8;
-  --text-secondary: #6b8050;
-  --text-muted: #3a4f28;
+  --bg-base: #080a0a;
+  --bg-surface: #0d0f0e;
+  --bg-card: #131714;
+  --border: #252c28;
+  --border-muted: #1b211e;
+  --lime: #6ee7b7;
+  --lime-dim: #34d399;
+  --lime-glow: rgba(110, 231, 183, 0.08);
+  --text-primary: #f4f7f5;
+  --text-secondary: #94a199;
+  --text-muted: #68756d;
 }
 
 @theme inline {
@@ -114,9 +114,9 @@ body {
 input:-webkit-autofill,
 input:-webkit-autofill:hover,
 input:-webkit-autofill:focus {
-  -webkit-box-shadow: 0 0 0px 1000px #111c0c inset !important;
-  -webkit-text-fill-color: #f0f5e8 !important;
-  caret-color: #c8f135;
+  -webkit-box-shadow: 0 0 0px 1000px #131714 inset !important;
+  -webkit-text-fill-color: #f4f7f5 !important;
+  caret-color: #6ee7b7;
 }
 
 /* Make buttons use pointer cursor by default; show not-allowed when disabled */
