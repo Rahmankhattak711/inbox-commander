@@ -1,11 +1,13 @@
 "use client";
 
+import { History, Plus, Trash2 } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 import { useCalendarEvents } from "@/hooks/useCalendarEvents";
 import {
   CHAT_MODELS,
   type ChatModel,
   DEFAULT_CHAT_MODEL,
+  isChatModel,
 } from "@/lib/chat-models";
 import { useGmailDraft } from "@/hooks/useCreateGmailDraft";
 
@@ -33,6 +35,30 @@ type Message = {
     }
   >;
 };
+
+type ChatHistoryItem = {
+  id: string;
+  title: string;
+  model: ChatModel;
+  messages: Message[];
+  createdAt: string;
+  updatedAt: string;
+};
+
+function getConversationTitle(messages: Message[]) {
+  const firstUserMessage = messages.find(
+    (message) => message.role === "user" && message.content?.trim(),
+  );
+  const title = firstUserMessage?.content?.trim() || "New conversation";
+  return title.length > 56 ? `${title.slice(0, 56)}...` : title;
+}
+
+function formatHistoryDate(value: string) {
+  return new Date(value).toLocaleDateString(undefined, {
+    month: "short",
+    day: "numeric",
+  });
+}
 
 function encodeEmail({
   to,
@@ -392,6 +418,10 @@ export default function Chat() {
   const [loading, setLoading] = useState(false);
   const [selectedModel, setSelectedModel] =
     useState<ChatModel>(DEFAULT_CHAT_MODEL);
+  const [chatHistory, setChatHistory] = useState<ChatHistoryItem[]>([]);
+  const [activeChatId, setActiveChatId] = useState<string | null>(null);
+  const [historyOpen, setHistoryOpen] = useState(false);
+  const [historyReady, setHistoryReady] = useState(false);
 
   const { sendDirect } = useGmailDraft();
   const { createEvent } = useCalendarEvents();
@@ -412,11 +442,111 @@ export default function Chat() {
     scrollToBottom();
   }, [messages]);
 
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadChatHistory() {
+      try {
+        const response = await fetch("/api/chat/history");
+        if (!response.ok) throw new Error("Failed to load chat history");
+
+        const conversations = (await response.json()) as ChatHistoryItem[];
+        if (cancelled) return;
+
+        setChatHistory(conversations);
+        const latestConversation = conversations[0];
+        if (latestConversation) {
+          setActiveChatId(latestConversation.id);
+          setMessages(latestConversation.messages);
+          setSelectedModel(
+            isChatModel(latestConversation.model)
+              ? latestConversation.model
+              : DEFAULT_CHAT_MODEL,
+          );
+        }
+      } catch (error) {
+        console.error("Failed to load chat history:", error);
+      } finally {
+        if (!cancelled) setHistoryReady(true);
+      }
+    }
+
+    void loadChatHistory();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!historyReady || !activeChatId || messages.length === 0) return;
+
+    const title = getConversationTitle(messages);
+    const conversation: ChatHistoryItem = {
+      id: activeChatId,
+      title,
+      model: selectedModel,
+      messages,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+
+    setChatHistory((current) => [
+      conversation,
+      ...current.filter((item) => item.id !== activeChatId),
+    ]);
+
+    const timeout = window.setTimeout(() => {
+      void fetch("/api/chat/history", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(conversation),
+      }).catch((error) => console.error("Failed to save chat history:", error));
+    }, 350);
+
+    return () => window.clearTimeout(timeout);
+  }, [activeChatId, historyReady, messages, selectedModel]);
+
+  function startNewChat() {
+    setInput("");
+    setMessages([]);
+    setActiveChatId(null);
+    setSelectedModel(DEFAULT_CHAT_MODEL);
+    setHistoryOpen(false);
+  }
+
+  function openConversation(conversation: ChatHistoryItem) {
+    setInput("");
+    setMessages(conversation.messages);
+    setActiveChatId(conversation.id);
+    setSelectedModel(
+      isChatModel(conversation.model) ? conversation.model : DEFAULT_CHAT_MODEL,
+    );
+    setHistoryOpen(false);
+  }
+
+  async function deleteConversation(id: string) {
+    try {
+      const response = await fetch(
+        `/api/chat/history?id=${encodeURIComponent(id)}`,
+        { method: "DELETE" },
+      );
+      if (!response.ok) throw new Error("Failed to delete chat history");
+
+      setChatHistory((current) => current.filter((item) => item.id !== id));
+      if (activeChatId === id) startNewChat();
+    } catch (error) {
+      console.error("Failed to delete chat history:", error);
+    }
+  }
+
   async function sendMessage(textToSend?: string) {
     const text = textToSend || input;
     if (!text.trim() || loading) return;
 
     if (!textToSend) setInput("");
+
+    const chatId = activeChatId || crypto.randomUUID();
+    if (!activeChatId) setActiveChatId(chatId);
 
     const userMessageId = `user-${Date.now()}`;
     setMessages((prev) => [
@@ -437,7 +567,10 @@ export default function Chat() {
       const response = await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ messages: promptMessages, model: selectedModel }),
+        body: JSON.stringify({
+          messages: promptMessages,
+          model: selectedModel,
+        }),
       });
 
       if (!response.ok) throw new Error("Failed to connect to AI");
@@ -611,7 +744,7 @@ export default function Chat() {
 
   return (
     <div
-      className="flex-1 flex flex-col h-full overflow-hidden antialiased bg-[#080a0a]"
+      className="relative flex-1 flex flex-col h-full overflow-hidden antialiased bg-[#080a0a]"
       style={{ color: "var(--text-primary)" }}
     >
       {/* Header */}
@@ -636,35 +769,115 @@ export default function Chat() {
             Multiple actions supported • Independent status
           </p>
         </div>
-        <label className="flex shrink-0 items-center gap-2">
-          <span
-            className="hidden text-[9px] font-extrabold uppercase tracking-widest sm:inline"
-            style={{ color: "var(--text-muted)" }}
-          >
-            Model
-          </span>
-          <select
-            aria-label="Chat model"
-            value={selectedModel}
-            disabled={loading}
-            onChange={(event) =>
-              setSelectedModel(event.target.value as ChatModel)
-            }
-            className="max-w-[12rem] rounded-lg border px-2.5 py-2 text-[10px] font-bold outline-none transition disabled:opacity-50"
+        <div className="flex shrink-0 items-center gap-2">
+          <button
+            type="button"
+            onClick={() => setHistoryOpen((open) => !open)}
+            aria-expanded={historyOpen}
+            className="inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-2 text-[10px] font-bold transition hover:border-emerald-300/40"
             style={{
               background: "var(--bg-base)",
               borderColor: "var(--border)",
               color: "var(--text-primary)",
             }}
           >
-            {CHAT_MODELS.map((chatModel) => (
-              <option key={chatModel.id} value={chatModel.id}>
-                {chatModel.label}
-              </option>
-            ))}
-          </select>
-        </label>
+            <History className="size-3.5" aria-hidden="true" />
+            <span className="hidden sm:inline">History</span>
+            <span className="text-emerald-200">{chatHistory.length}</span>
+          </button>
+          <button
+            type="button"
+            onClick={startNewChat}
+            className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-300 px-2.5 py-2 text-[10px] font-extrabold text-[#062016] transition hover:bg-emerald-200"
+          >
+            <Plus className="size-3.5" aria-hidden="true" />
+            <span className="hidden sm:inline">New chat</span>
+          </button>
+          <label className="flex items-center gap-2">
+            <span
+              className="hidden text-[9px] font-extrabold uppercase tracking-widest sm:inline"
+              style={{ color: "var(--text-muted)" }}
+            >
+              Model
+            </span>
+            <select
+              aria-label="Chat model"
+              value={selectedModel}
+              disabled={loading}
+              onChange={(event) =>
+                setSelectedModel(event.target.value as ChatModel)
+              }
+              className="max-w-[9rem] rounded-lg border px-2.5 py-2 text-[10px] font-bold outline-none transition disabled:opacity-50 sm:max-w-[12rem]"
+              style={{
+                background: "var(--bg-base)",
+                borderColor: "var(--border)",
+                color: "var(--text-primary)",
+              }}
+            >
+              {CHAT_MODELS.map((chatModel) => (
+                <option key={chatModel.id} value={chatModel.id}>
+                  {chatModel.label}
+                </option>
+              ))}
+            </select>
+          </label>
+        </div>
       </header>
+
+      {historyOpen && (
+        <div className="absolute right-5 top-[5.75rem] z-30 w-[min(22rem,calc(100vw-2.5rem))] rounded-2xl border border-white/[0.1] bg-[#111513] p-3 shadow-2xl shadow-black/40">
+          <div className="flex items-center justify-between px-2 py-1">
+            <div>
+              <p className="text-xs font-bold text-white">Chat history</p>
+              <p className="mt-1 text-[10px] text-[#7f8b84]">
+                Saved to your secure workspace
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={startNewChat}
+              className="text-[10px] font-bold uppercase tracking-wider text-emerald-200 hover:text-white"
+            >
+              New
+            </button>
+          </div>
+          <div className="mt-3 max-h-80 space-y-1 overflow-y-auto">
+            {chatHistory.length === 0 ? (
+              <p className="rounded-xl border border-white/[0.07] px-3 py-4 text-center text-xs text-[#7f8b84]">
+                No saved conversations yet.
+              </p>
+            ) : (
+              chatHistory.map((conversation) => (
+                <div
+                  key={conversation.id}
+                  className={`flex items-center gap-1 rounded-xl border transition ${conversation.id === activeChatId ? "border-emerald-200/20 bg-emerald-300/[0.08]" : "border-transparent hover:border-white/[0.08] hover:bg-white/[0.04]"}`}
+                >
+                  <button
+                    type="button"
+                    onClick={() => openConversation(conversation)}
+                    className="min-w-0 flex-1 px-3 py-2.5 text-left"
+                  >
+                    <span className="block truncate text-xs font-medium text-white">
+                      {conversation.title}
+                    </span>
+                    <span className="mt-1 block text-[10px] text-[#7f8b84]">
+                      {formatHistoryDate(conversation.updatedAt)}
+                    </span>
+                  </button>
+                  <button
+                    type="button"
+                    aria-label={`Delete ${conversation.title}`}
+                    onClick={() => void deleteConversation(conversation.id)}
+                    className="mr-2 rounded-lg p-2 text-[#7f8b84] transition hover:bg-red-400/10 hover:text-red-300"
+                  >
+                    <Trash2 className="size-3.5" aria-hidden="true" />
+                  </button>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Chat Area */}
       <div className="flex-1 overflow-y-auto p-5 sm:p-8 space-y-6 [background:radial-gradient(circle_at_50%_-10%,rgba(110,231,183,0.07),transparent_36%)]">
