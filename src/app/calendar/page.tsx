@@ -13,13 +13,8 @@ import Popup from "./component/Popup";
 const WEEK_DAYS = ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"];
 
 export default function Calendar() {
-  const {
-    events,
-    isFetching,
-    fetchError,
-    deleteEvent,
-    deleteError,
-  } = useCalendarEvents();
+  const { events, isFetching, fetchError, deleteEvent, deleteError } =
+    useCalendarEvents();
 
   const [visibleMonth, setVisibleMonth] = useState(() =>
     startOfMonth(new Date()),
@@ -39,20 +34,17 @@ export default function Calendar() {
 
   return (
     <div
-      className="flex-1 antialiased px-6 py-10 max-w-6xl w-full mx-auto space-y-8 animate-in fade-in duration-300"
+      className="flex-1 antialiased px-5 py-6 sm:px-8 sm:py-8 max-w-6xl w-full mx-auto space-y-8 animate-in fade-in duration-300 bg-gradient-to-b from-[#101311] to-[#090b0a]"
       style={{ color: "var(--text-primary)" }}
     >
       {/* Header */}
-      <div
-        className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-6"
-        style={{ borderBottom: "1px solid var(--border)" }}
-      >
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 rounded-[1.5rem] border border-white/[0.08] bg-[#101311]/85 p-6 shadow-[inset_0_1px_0_rgba(255,255,255,0.025)] backdrop-blur-xl">
         <div>
           <span
             className="text-[9px] font-extrabold tracking-widest uppercase font-mono"
             style={{ color: "var(--lime)" }}
           >
-            Calendar Module
+            AI Calendar Workspace
           </span>
           <h1
             className="text-2xl font-extrabold tracking-tight mt-1"
@@ -64,7 +56,8 @@ export default function Calendar() {
             className="text-xs mt-1"
             style={{ color: "var(--text-secondary)" }}
           >
-            View, create, and manage your workspace events.
+            A calmer schedule with smart context, fast actions, and
+            approval-first planning.
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -135,10 +128,9 @@ export default function Calendar() {
       <div className="grid gap-8 lg:grid-cols-[1fr_340px]">
         {/* Calendar Grid */}
         <div
-          className="rounded-2xl p-6 space-y-6"
+          className="rounded-[1.5rem] p-5 sm:p-6 space-y-6 border border-white/[0.08] bg-[#0d0f0e]/75 shadow-[inset_0_1px_0_rgba(255,255,255,0.025)]"
           style={{
-            background: "var(--bg-surface)",
-            border: "1px solid var(--border)",
+            background: "rgba(13,15,14,0.75)",
           }}
         >
           <div className="flex items-center justify-between">
@@ -153,7 +145,7 @@ export default function Calendar() {
             </h2>
             {isFetching && (
               <span
-                className="text-[10px] font-mono flex items-center gap-1.5"
+                className="text-[10px] font-mono  flex items-center gap-1.5"
                 style={{ color: "var(--lime)" }}
               >
                 <svg
@@ -208,9 +200,8 @@ export default function Calendar() {
                         ? { background: "var(--lime)", color: "var(--bg-base)" }
                         : isToday
                           ? {
-                              background: "rgba(200,241,53,0.08)",
-                              border: "1px solid rgba(200,241,53,0.25)",
-                              color: "var(--lime)",
+                               background: "var(--lime-glow)",
+                      color: "var(--lime)",
                             }
                           : isCurrentMonth
                             ? {
@@ -269,10 +260,9 @@ export default function Calendar() {
             </div>
             <button
               onClick={() => setShowCreate(true)}
-              className="text-[9px] px-3 py-1.5 rounded-lg font-extrabold uppercase tracking-widest transition"
+              className="text-[9px] px-3 py-1.5 rounded-lg font-extrabold uppercase tracking-widest transition bg"
               style={{
-                background: "rgba(200,241,53,0.08)",
-                border: "1px solid rgba(200,241,53,0.2)",
+                background: "var(--lime-glow)",
                 color: "var(--lime)",
               }}
             >
@@ -285,10 +275,9 @@ export default function Calendar() {
               selectedEvents.map((event) => (
                 <div
                   key={event.id}
-                  className="flex items-start justify-between gap-4 p-4 rounded-xl"
+                  className="flex items-start justify-between gap-4 p-4 rounded-2xl border border-white/[0.08] bg-white/[0.025] shadow-lg shadow-black/10"
                   style={{
-                    background: "var(--bg-surface)",
-                    border: "1px solid var(--border)",
+                    background: "rgba(255,255,255,0.025)",
                   }}
                 >
                   <div className="flex items-start gap-3 min-w-0">

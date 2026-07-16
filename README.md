@@ -19,10 +19,19 @@ Inbox Commander is a keyboard-first command center for Gmail and Google Calendar
 - Dashboard widgets for today's and upcoming events
 
 ### AI Assistant (`/chat`)
-- Natural-language requests powered by OpenRouter (Grok)
+- Natural-language requests powered by OpenRouter with selectable models
 - Detects multiple actions in one prompt (email + calendar)
 - Returns structured JSON for email compose cards and calendar event forms
 - Sends only user prompt messages to the model (no assistant history replay)
+- Authenticated chat history with conversation switching, new chats, and deletion
+
+### Landing Page
+- Commander Agent with a multi-agent workflow visualization
+- Live execution timeline that shows each mission step as it happens
+- Mission Complete summary with completed tasks, time saved, and tabs avoided
+- Daily AI Briefing with proactive recommendations
+- Commander Alerts that surface inbox and calendar risks before the user asks
+- Free plan with a Pro plan marked as coming soon
 
 ### Dashboard
 - Personalized greeting and stats (events, sent mail, drafts)
@@ -116,9 +125,19 @@ Inbox Commander is a keyboard-first command center for Gmail and Google Calendar
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| `POST` | `/api/chat` | AI assistant — body: `{ messages: [{ role: "user", content }] }` |
+| `POST` | `/api/chat` | AI assistant — body: `{ messages: [{ role: "user", content }], model?: string }` |
+
+Supported chat models: `deepseek/deepseek-v4-flash`, `google/gemini-3-flash-preview`, `deepseek/deepseek-v4-pro`, `deepseek/deepseek-v3.2`, `openai/gpt-oss-120b`, and `openai/gpt-5.5`. The API defaults to `deepseek/deepseek-v4-flash` when `model` is omitted or invalid.
 
 ---
+
+### Chat History API
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `GET` | `/api/chat/history` | List the signed-in user's saved conversations |
+| `POST` | `/api/chat/history` | Create or update a saved conversation |
+| `DELETE` | `/api/chat/history?id=` | Delete one saved conversation |
 
 ## Getting Started
 

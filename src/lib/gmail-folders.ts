@@ -1,4 +1,5 @@
 export type GmailFolderId =
+  | "inbox"
   | "spam"
   | "important"
   | "snoozed"
@@ -6,6 +7,7 @@ export type GmailFolderId =
   | "purchases";
 
 export const GMAIL_FOLDER_QUERIES: Record<GmailFolderId, string> = {
+  inbox: "in:inbox",
   spam: "in:spam",
   important: "is:important",
   starred: "is:starred",
@@ -13,14 +15,11 @@ export const GMAIL_FOLDER_QUERIES: Record<GmailFolderId, string> = {
   purchases: "category:purchases",
 };
 
-export type GmailTab =
-  | "sent"
-  | "drafts"
-  | "trash"
-  | GmailFolderId;
+export type GmailTab = "sent" | "drafts" | "trash" | GmailFolderId;
 
 export function tabFromParam(param: string | null): GmailTab {
   if (
+    param === "inbox" ||
     param === "drafts" ||
     param === "trash" ||
     param === "spam" ||
@@ -42,6 +41,12 @@ export const GMAIL_TAB_META: Record<
   GmailTab,
   { title: string; description: string; emptyLabel: string }
 > = {
+  inbox: {
+    title: "Inbox",
+    description:
+      "AI triage ranks incoming mail and summarizes what needs attention.",
+    emptyLabel: "Inbox is Clear",
+  },
   sent: {
     title: "Sent Emails",
     description: "View and audit your sent emails.",

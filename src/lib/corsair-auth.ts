@@ -3,7 +3,7 @@ import { corsair } from "../../corsair";
 import { prisma } from "./prisma";
 
 const GOOGLE_CALENDAR_SCOPE = "https://www.googleapis.com/auth/calendar";
-const GOOGLE_GMAIL_SCOPE = "https://www.googleapis.com/auth/gmail.compose";
+const GOOGLE_GMAIL_SCOPE = "https://www.googleapis.com/auth/gmail.modify";
 
 async function ensureIntegrationCredentials() {
   const envClientId = process.env.GOOGLE_CLIENT_ID;
