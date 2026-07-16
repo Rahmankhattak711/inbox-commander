@@ -145,7 +145,7 @@ export default function Calendar() {
             </h2>
             {isFetching && (
               <span
-                className="text-[10px] font-mono flex items-center gap-1.5"
+                className="text-[10px] font-mono  flex items-center gap-1.5"
                 style={{ color: "var(--lime)" }}
               >
                 <svg
@@ -200,9 +200,8 @@ export default function Calendar() {
                         ? { background: "var(--lime)", color: "var(--bg-base)" }
                         : isToday
                           ? {
-                              background: "rgba(200,241,53,0.08)",
-                              border: "1px solid rgba(200,241,53,0.25)",
-                              color: "var(--lime)",
+                               background: "var(--lime-glow)",
+                      color: "var(--lime)",
                             }
                           : isCurrentMonth
                             ? {
@@ -261,10 +260,9 @@ export default function Calendar() {
             </div>
             <button
               onClick={() => setShowCreate(true)}
-              className="text-[9px] px-3 py-1.5 rounded-lg font-extrabold uppercase tracking-widest transition"
+              className="text-[9px] px-3 py-1.5 rounded-lg font-extrabold uppercase tracking-widest transition bg"
               style={{
-                background: "rgba(200,241,53,0.08)",
-                border: "1px solid rgba(200,241,53,0.2)",
+                background: "var(--lime-glow)",
                 color: "var(--lime)",
               }}
             >
