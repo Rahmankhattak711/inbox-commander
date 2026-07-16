@@ -1,8 +1,13 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { useGmailDraft } from "@/hooks/useCreateGmailDraft";
 import { useCalendarEvents } from "@/hooks/useCalendarEvents";
+import {
+  CHAT_MODELS,
+  type ChatModel,
+  DEFAULT_CHAT_MODEL,
+} from "@/lib/chat-models";
+import { useGmailDraft } from "@/hooks/useCreateGmailDraft";
 
 type MessageAction =
   | {
@@ -385,6 +390,8 @@ export default function Chat() {
   const [input, setInput] = useState("");
   const [messages, setMessages] = useState<Message[]>([]);
   const [loading, setLoading] = useState(false);
+  const [selectedModel, setSelectedModel] =
+    useState<ChatModel>(DEFAULT_CHAT_MODEL);
 
   const { sendDirect } = useGmailDraft();
   const { createEvent } = useCalendarEvents();
@@ -394,7 +401,7 @@ export default function Chat() {
     "Book a meeting with John next Monday at 10 AM and also send the email to example@gmail.com",
     "Send a project update to the engineering team",
     "Schedule a 30-minute sync with John tomorrow at 11 AM",
-    "Review my inbox and prepare my schedule for today",
+    "Give me my executive briefing and top Commander Alerts",
   ];
 
   const scrollToBottom = () => {
@@ -430,7 +437,7 @@ export default function Chat() {
       const response = await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ messages: promptMessages }),
+        body: JSON.stringify({ messages: promptMessages, model: selectedModel }),
       });
 
       if (!response.ok) throw new Error("Failed to connect to AI");
@@ -604,23 +611,23 @@ export default function Chat() {
 
   return (
     <div
-      className="flex-1 flex flex-col h-full overflow-hidden antialiased"
-      style={{ background: "var(--bg-base)", color: "var(--text-primary)" }}
+      className="flex-1 flex flex-col h-full overflow-hidden antialiased bg-[#080a0a]"
+      style={{ color: "var(--text-primary)" }}
     >
       {/* Header */}
       <header
-        className="px-8 py-6 flex justify-between items-center shrink-0"
-        style={{ borderBottom: "1px solid var(--border)" }}
+        className="px-6 py-5 sm:px-8 sm:py-6 flex justify-between items-center shrink-0 bg-[#0d0f0e]/80 backdrop-blur-xl"
+        style={{ borderBottom: "1px solid rgba(255,255,255,0.08)" }}
       >
-        <div>
+        <div className="min-w-0">
           <span
             className="text-[9px] font-extrabold tracking-widest uppercase font-mono"
             style={{ color: "var(--lime)" }}
           >
-            COMMANDER AGENT
+            OPENAI EXECUTIVE ASSISTANT
           </span>
           <h1 className="text-2xl font-extrabold tracking-tight mt-1">
-            AI Assistant Chat
+            Commander Command Center
           </h1>
           <p
             className="text-xs mt-1"
@@ -629,19 +636,41 @@ export default function Chat() {
             Multiple actions supported • Independent status
           </p>
         </div>
+        <label className="flex shrink-0 items-center gap-2">
+          <span
+            className="hidden text-[9px] font-extrabold uppercase tracking-widest sm:inline"
+            style={{ color: "var(--text-muted)" }}
+          >
+            Model
+          </span>
+          <select
+            aria-label="Chat model"
+            value={selectedModel}
+            disabled={loading}
+            onChange={(event) =>
+              setSelectedModel(event.target.value as ChatModel)
+            }
+            className="max-w-[12rem] rounded-lg border px-2.5 py-2 text-[10px] font-bold outline-none transition disabled:opacity-50"
+            style={{
+              background: "var(--bg-base)",
+              borderColor: "var(--border)",
+              color: "var(--text-primary)",
+            }}
+          >
+            {CHAT_MODELS.map((chatModel) => (
+              <option key={chatModel.id} value={chatModel.id}>
+                {chatModel.label}
+              </option>
+            ))}
+          </select>
+        </label>
       </header>
 
       {/* Chat Area */}
-      <div className="flex-1 overflow-y-auto p-8 space-y-6">
+      <div className="flex-1 overflow-y-auto p-5 sm:p-8 space-y-6 [background:radial-gradient(circle_at_50%_-10%,rgba(110,231,183,0.07),transparent_36%)]">
         {messages.length === 0 && (
-          <div className="max-w-2xl mx-auto py-16 flex flex-col items-center justify-center text-center space-y-8">
-            <div
-              className="w-16 h-16 rounded-2xl flex items-center justify-center border"
-              style={{
-                background: "var(--lime-glow)",
-                borderColor: "rgba(200,241,53,0.3)",
-              }}
-            >
+          <div className="max-w-2xl mx-auto my-4 rounded-[2rem] border border-white/[0.08] bg-white/[0.025] px-6 py-14 flex flex-col items-center justify-center text-center space-y-8 shadow-xl shadow-black/10 sm:px-10">
+            <div className="w-16 h-16 rounded-2xl flex items-center justify-center border border-emerald-300/20 bg-emerald-300/10 text-emerald-200 shadow-[0_0_28px_rgba(110,231,183,0.14)]">
               <span className="text-4xl">🤖</span>
             </div>
             <div className="space-y-3">
@@ -665,10 +694,10 @@ export default function Chat() {
                   <button
                     key={i}
                     onClick={() => sendMessage(sug)}
-                    className="w-full text-left p-4 rounded-2xl border text-sm hover:border-[var(--lime)]/50 hover:bg-[var(--lime-glow)]/10 transition-all"
+                    className="w-full text-left p-4 rounded-2xl border text-sm hover:border-emerald-300/40 hover:bg-emerald-300/[0.06] transition-all"
                     style={{
-                      background: "var(--bg-surface)",
-                      borderColor: "var(--border)",
+                      background: "rgba(255,255,255,0.025)",
+                      borderColor: "rgba(255,255,255,0.08)",
                     }}
                   >
                     {sug}
@@ -777,13 +806,10 @@ export default function Chat() {
       </div>
 
       {/* Input Bar */}
-      <div
-        className="p-6 shrink-0"
-        style={{ borderTop: "1px solid var(--border)" }}
-      >
-        <div className="max-w-4xl mx-auto flex gap-3">
+      <div className="p-4 sm:p-6 shrink-0 border-t border-white/[0.08] bg-[#0d0f0e]/85 backdrop-blur-xl">
+        <div className="max-w-4xl mx-auto flex gap-3 rounded-2xl border border-white/[0.1] bg-white/[0.035] p-2 shadow-lg shadow-black/10 focus-within:border-emerald-300/35 focus-within:ring-4 focus-within:ring-emerald-300/[0.06]">
           <input
-            className="flex-1 px-5 py-3.5 rounded-xl text-xs outline-none transition"
+            className="flex-1 px-4 py-3 rounded-xl text-xs outline-none transition bg-transparent"
             value={input}
             disabled={loading}
             onChange={(e) => setInput(e.target.value)}
@@ -793,17 +819,12 @@ export default function Chat() {
               !e.shiftKey &&
               (e.preventDefault(), sendMessage())
             }
-            style={{
-              background: "var(--bg-surface)",
-              border: "1px solid var(--border)",
-              color: "var(--text-primary)",
-            }}
+            style={{ color: "var(--text-primary)" }}
           />
           <button
             onClick={() => sendMessage()}
             disabled={loading || !input.trim()}
-            className="px-6 py-3.5 rounded-xl text-xs font-extrabold uppercase tracking-widest transition duration-200 active:scale-[0.98] disabled:opacity-50 flex items-center gap-2 cursor-pointer"
-            style={{ background: "var(--lime)", color: "var(--bg-base)" }}
+            className="px-5 sm:px-6 py-3 rounded-xl text-xs font-extrabold uppercase tracking-widest transition duration-200 active:scale-[0.98] disabled:opacity-50 flex items-center gap-2 cursor-pointer bg-emerald-300 text-[#062016] hover:bg-emerald-200"
           >
             Send
           </button>
