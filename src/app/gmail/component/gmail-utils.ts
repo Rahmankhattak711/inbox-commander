@@ -18,13 +18,23 @@ export function getHeader(
   );
 }
 
+export type ParsedGmailMessage = {
+  id: string;
+  messageId: string;
+  subject: string;
+  to: string;
+  from: string;
+  date: string;
+  snippet: string;
+};
+
 export function parseGmailMessage(message: {
   id?: string;
   draftId?: string;
   snippet?: string;
   internalDate?: string;
   payload?: { headers?: Array<{ name: string; value: string }> };
-}) {
+}): ParsedGmailMessage {
   const dateHeader = getHeader(message, "date");
   let dateStr = "";
   if (dateHeader) {

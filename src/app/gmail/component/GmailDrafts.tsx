@@ -36,11 +36,8 @@ export default function GmailDrafts() {
   const actionError = sendError || deleteError;
 
   return (
-    <div className="flex-1 flex flex-col h-full min-h-0">
-      <header
-        className="px-8 py-4 flex justify-between items-center shrink-0"
-        style={{ borderBottom: "1px solid var(--border)" }}
-      >
+    <div className="flex-1 flex flex-col h-full min-h-0 bg-gradient-to-b from-[#101311] to-[#090b0a]">
+      <header className="px-6 py-4 sm:px-8 flex justify-between items-center gap-4 shrink-0 border-b border-white/[0.08] bg-[#101311]/65 backdrop-blur-xl">
         <p className="text-xs" style={{ color: "var(--text-secondary)" }}>
           Manage saved drafts — send or delete when ready.
         </p>
@@ -79,7 +76,7 @@ export default function GmailDrafts() {
 
       <div className="flex-1 flex overflow-hidden min-h-0">
         <div
-          className="w-1/2 flex flex-col h-full overflow-y-auto"
+          className="w-1/2 flex flex-col h-full overflow-y-auto bg-white/[0.015]"
           style={{ borderRight: "1px solid var(--border)" }}
         >
           {isFetching && parsedDrafts.length === 0 ? (
@@ -175,10 +172,7 @@ export default function GmailDrafts() {
           )}
         </div>
 
-        <div
-          className="w-1/2 p-8 overflow-y-auto flex flex-col h-full"
-          style={{ background: "var(--bg-surface)" }}
-        >
+        <div className="w-1/2 p-6 sm:p-8 overflow-y-auto flex flex-col h-full bg-[#0d0f0e]/70">
           {selectedDraft ? (
             <div className="flex flex-col h-full justify-between">
               <div className="space-y-6">

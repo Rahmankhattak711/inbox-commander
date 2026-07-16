@@ -38,11 +38,8 @@ export default function GmailTrash() {
   const isBusy = isRestoring || isDeleting;
 
   return (
-    <div className="flex-1 flex flex-col h-full min-h-0">
-      <header
-        className="px-8 py-4 flex justify-between items-center shrink-0"
-        style={{ borderBottom: "1px solid var(--border)" }}
-      >
+    <div className="flex-1 flex flex-col h-full min-h-0 bg-gradient-to-b from-[#101311] to-[#090b0a]">
+      <header className="px-6 py-4 sm:px-8 flex justify-between items-center gap-4 shrink-0 border-b border-white/[0.08] bg-[#101311]/65 backdrop-blur-xl">
         <p className="text-xs" style={{ color: "var(--text-secondary)" }}>
           Trashed emails — restore or delete permanently.
         </p>
@@ -62,7 +59,7 @@ export default function GmailTrash() {
 
       <div className="flex-1 flex overflow-hidden min-h-0">
         <div
-          className="w-1/2 flex flex-col h-full overflow-y-auto"
+          className="w-1/2 flex flex-col h-full overflow-y-auto bg-white/[0.015]"
           style={{ borderRight: "1px solid var(--border)" }}
         >
           {isFetching && parsedEmails.length === 0 ? (
@@ -99,60 +96,59 @@ export default function GmailTrash() {
             </div>
           ) : (
             <div style={{ borderBottom: "1px solid var(--border)" }}>
-              {parsedEmails.map((email: ReturnType<typeof parseGmailMessage>) => {
-                const isSelected = selectedEmail?.id === email.id;
-                return (
-                  <button
-                    key={email.id}
-                    onClick={() => setSelectedEmailId(email.id)}
-                    className="w-full text-left p-5 flex flex-col gap-2 transition-all duration-150"
-                    style={{
-                      borderBottom: "1px solid var(--border-muted)",
-                      borderLeft: `2px solid ${isSelected ? "#f87171" : "transparent"}`,
-                      background: isSelected
-                        ? "rgba(239,68,68,0.04)"
-                        : "transparent",
-                    }}
-                  >
-                    <div className="flex justify-between items-center gap-2">
-                      <span
-                        className="text-[9px] font-bold tracking-widest uppercase font-mono truncate max-w-[70%]"
-                        style={{ color: "var(--text-secondary)" }}
-                      >
-                        To: {email.to}
-                      </span>
-                      <span
-                        className="text-[9px] font-mono shrink-0"
-                        style={{ color: "var(--text-muted)" }}
-                      >
-                        {email.date}
-                      </span>
-                    </div>
-                    <h3
-                      className="text-xs font-bold truncate"
+              {parsedEmails.map(
+                (email: ReturnType<typeof parseGmailMessage>) => {
+                  const isSelected = selectedEmail?.id === email.id;
+                  return (
+                    <button
+                      key={email.id}
+                      onClick={() => setSelectedEmailId(email.id)}
+                      className="w-full text-left p-5 flex flex-col gap-2 transition-all duration-150"
                       style={{
-                        color: isSelected ? "#f87171" : "var(--text-primary)",
+                        borderBottom: "1px solid var(--border-muted)",
+                        borderLeft: `2px solid ${isSelected ? "#f87171" : "transparent"}`,
+                        background: isSelected
+                          ? "rgba(239,68,68,0.04)"
+                          : "transparent",
                       }}
                     >
-                      {email.subject}
-                    </h3>
-                    <p
-                      className="text-[11px] line-clamp-2 leading-relaxed"
-                      style={{ color: "var(--text-secondary)" }}
-                    >
-                      {email.snippet}
-                    </p>
-                  </button>
-                );
-              })}
+                      <div className="flex justify-between items-center gap-2">
+                        <span
+                          className="text-[9px] font-bold tracking-widest uppercase font-mono truncate max-w-[70%]"
+                          style={{ color: "var(--text-secondary)" }}
+                        >
+                          To: {email.to}
+                        </span>
+                        <span
+                          className="text-[9px] font-mono shrink-0"
+                          style={{ color: "var(--text-muted)" }}
+                        >
+                          {email.date}
+                        </span>
+                      </div>
+                      <h3
+                        className="text-xs font-bold truncate"
+                        style={{
+                          color: isSelected ? "#f87171" : "var(--text-primary)",
+                        }}
+                      >
+                        {email.subject}
+                      </h3>
+                      <p
+                        className="text-[11px] line-clamp-2 leading-relaxed"
+                        style={{ color: "var(--text-secondary)" }}
+                      >
+                        {email.snippet}
+                      </p>
+                    </button>
+                  );
+                },
+              )}
             </div>
           )}
         </div>
 
-        <div
-          className="w-1/2 p-8 overflow-y-auto flex flex-col h-full"
-          style={{ background: "var(--bg-surface)" }}
-        >
+        <div className="w-1/2 p-6 sm:p-8 overflow-y-auto flex flex-col h-full bg-[#0d0f0e]/70">
           {selectedEmail ? (
             <div className="flex flex-col h-full justify-between">
               <div className="space-y-6">

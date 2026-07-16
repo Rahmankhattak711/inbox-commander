@@ -46,19 +46,16 @@ export default function GmailPage() {
 
   return (
     <div
-      className="flex-1 antialiased flex flex-col h-full animate-in fade-in duration-300"
-      style={{ color: "var(--text-primary)", background: "var(--bg-base)" }}
+      className="flex-1 antialiased flex flex-col h-full animate-in fade-in duration-300 bg-gradient-to-b from-[#101311] to-[#090b0a]"
+      style={{ color: "var(--text-primary)" }}
     >
-      <header
-        className="px-8 py-6 flex justify-between items-center shrink-0"
-        style={{ borderBottom: "1px solid var(--border)" }}
-      >
+      <header className="px-6 py-5 sm:px-8 sm:py-6 flex justify-between items-center gap-4 shrink-0 border-b border-white/[0.08] bg-[#101311]/85 shadow-[0_10px_28px_rgba(0,0,0,0.12)] backdrop-blur-xl">
         <div>
           <span
             className="text-[9px] font-extrabold tracking-widest uppercase font-mono"
             style={{ color: "var(--lime)" }}
           >
-            Gmail Module
+            AI Email Workspace
           </span>
           <h1
             className="text-2xl font-extrabold tracking-tight mt-1"
@@ -67,10 +64,12 @@ export default function GmailPage() {
             {meta.title}
           </h1>
           <p
-            className="text-xs mt-1"
+            className="text-xs mt-1 max-w-2xl leading-relaxed"
             style={{ color: "var(--text-secondary)" }}
           >
-            {meta.description}
+            {tab === "inbox"
+              ? "OpenAI-ranked messages, concise summaries, and approval-ready next steps."
+              : meta.description}
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -120,7 +119,7 @@ export default function GmailPage() {
       ) : (
         <div className="flex-1 flex overflow-hidden min-h-0">
           <div
-            className="w-1/2 flex flex-col h-full overflow-y-auto"
+            className="w-1/2 flex flex-col h-full overflow-y-auto bg-white/[0.015]"
             style={{ borderRight: "1px solid var(--border)" }}
           >
             {isFetching && parsedEmails.length === 0 ? (
@@ -157,62 +156,61 @@ export default function GmailPage() {
               </div>
             ) : (
               <div style={{ borderBottom: "1px solid var(--border)" }}>
-                {parsedEmails.map((email: ReturnType<typeof parseGmailMessage>) => {
-                  const isSelected = selectedEmail?.id === email.id;
-                  return (
-                    <button
-                      key={email.id}
-                      onClick={() => setSelectedEmailId(email.id)}
-                      className="w-full text-left p-5 flex flex-col gap-2 transition-all duration-150"
-                      style={{
-                        borderBottom: "1px solid var(--border-muted)",
-                        borderLeft: `2px solid ${isSelected ? "var(--lime)" : "transparent"}`,
-                        background: isSelected
-                          ? "rgba(200,241,53,0.04)"
-                          : "transparent",
-                      }}
-                    >
-                      <div className="flex justify-between items-center gap-2">
-                        <span
-                          className="text-[9px] font-bold tracking-widest uppercase font-mono truncate max-w-[70%]"
-                          style={{ color: "var(--text-secondary)" }}
-                        >
-                          To: {email.to}
-                        </span>
-                        <span
-                          className="text-[9px] font-mono shrink-0"
-                          style={{ color: "var(--text-muted)" }}
-                        >
-                          {email.date}
-                        </span>
-                      </div>
-                      <h3
-                        className="text-xs font-bold truncate"
+                {parsedEmails.map(
+                  (email: ReturnType<typeof parseGmailMessage>) => {
+                    const isSelected = selectedEmail?.id === email.id;
+                    return (
+                      <button
+                        key={email.id}
+                        onClick={() => setSelectedEmailId(email.id)}
+                        className="w-full text-left p-5 flex flex-col gap-2 transition-all duration-150"
                         style={{
-                          color: isSelected
-                            ? "var(--lime)"
-                            : "var(--text-primary)",
+                          borderBottom: "1px solid var(--border-muted)",
+                          borderLeft: `2px solid ${isSelected ? "var(--lime)" : "transparent"}`,
+                          background: isSelected
+                            ? "rgba(200,241,53,0.04)"
+                            : "transparent",
                         }}
                       >
-                        {email.subject}
-                      </h3>
-                      <p
-                        className="text-[11px] line-clamp-2 leading-relaxed"
-                        style={{ color: "var(--text-secondary)" }}
-                      >
-                        {email.snippet}
-                      </p>
-                    </button>
-                  );
-                })}
+                        <div className="flex justify-between items-center gap-2">
+                          <span
+                            className="text-[9px] font-bold tracking-widest uppercase font-mono truncate max-w-[70%]"
+                            style={{ color: "var(--text-secondary)" }}
+                          >
+                            To: {email.to}
+                          </span>
+                          <span
+                            className="text-[9px] font-mono shrink-0"
+                            style={{ color: "var(--text-muted)" }}
+                          >
+                            {email.date}
+                          </span>
+                        </div>
+                        <h3
+                          className="text-xs font-bold truncate"
+                          style={{
+                            color: isSelected
+                              ? "var(--lime)"
+                              : "var(--text-primary)",
+                          }}
+                        >
+                          {email.subject}
+                        </h3>
+                        <p
+                          className="text-[11px] line-clamp-2 leading-relaxed"
+                          style={{ color: "var(--text-secondary)" }}
+                        >
+                          {email.snippet}
+                        </p>
+                      </button>
+                    );
+                  },
+                )}
               </div>
             )}
           </div>
 
-          <div
-            className="w-1/2 p-8 overflow-y-auto flex flex-col h-full"
-            style={{ background: "var(--bg-surface)" }}
-          >
+          <div className="w-1/2 p-6 sm:p-8 overflow-y-auto flex flex-col h-full bg-[#0d0f0e]/70">
             {selectedEmail ? (
               <div className="flex flex-col h-full justify-between">
                 <div className="space-y-6">
