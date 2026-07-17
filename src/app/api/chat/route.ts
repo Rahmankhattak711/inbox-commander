@@ -156,7 +156,7 @@ export async function POST(req: Request) {
         },
       ],
       temperature: 0.1,
-      max_tokens: 5000,
+      max_tokens: 500,
     });
 
     let raw = (completion.choices[0]?.message?.content || "").trim();

@@ -27,6 +27,7 @@ import {
 } from "@/hooks/useCreateGmailDraft";
 import { useInboxTriage } from "@/hooks/useInboxTriage";
 import { authClient } from "@/lib/auth-client";
+import DashboardCharts from "./components/DashboardCharts";
 
 const glassCard = "rounded-2xl border border-white/[0.09] bg-white/[0.025]";
 
@@ -70,6 +71,18 @@ export default function Dashboard() {
   const triageById = useMemo(
     () => new Map(triage.map((item) => [item.id, item])),
     [triage],
+  );
+  const priorityCounts = useMemo(
+    () =>
+      parsedInbox.reduce(
+        (counts, email) => {
+          const priority = triageById.get(email.id)?.priority ?? "routine";
+          counts[priority] += 1;
+          return counts;
+        },
+        { urgent: 0, important: 0, routine: 0 },
+      ),
+    [parsedInbox, triageById],
   );
   const prioritizedInbox = useMemo(
     () =>
@@ -254,6 +267,16 @@ export default function Dashboard() {
             </article>
           ))}
         </section>
+
+        <DashboardCharts
+          inboxCount={inbox.length}
+          draftsCount={drafts.length}
+          sentCount={emails.length}
+          events={events}
+          priorityCounts={priorityCounts}
+          todayKey={todayKey}
+          isLoading={loading || isTriageLoading}
+        />
 
         <section className="grid gap-6 xl:grid-cols-[1.25fr_.75fr]">
           <div className={`${glassCard} overflow-hidden`}>
