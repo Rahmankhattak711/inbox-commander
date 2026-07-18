@@ -121,8 +121,8 @@ function EmailComposerCard({
       className="p-5 rounded-xl border mt-3 space-y-4 max-w-lg shadow-lg transition duration-200 animate-in fade-in zoom-in-95 duration-300"
       style={{
         background: "var(--bg-card)",
-        borderColor:
-          status === "success" ? "rgba(200, 241, 53, 0.4)" : "var(--border)",
+        borderColor: "var(--border)",
+        color: "var(--text-primary)",
       }}
     >
       <div className="flex items-center justify-between">
@@ -287,8 +287,8 @@ function CalendarComposerCard({
       className="p-5 rounded-xl border mt-3 space-y-4 max-w-lg shadow-lg transition duration-200 animate-in fade-in zoom-in-95 duration-300"
       style={{
         background: "var(--bg-card)",
-        borderColor:
-          status === "success" ? "rgba(200, 241, 53, 0.4)" : "var(--border)",
+        borderColor: "var(--border)",
+        color: "var(--text-primary)",
       }}
     >
       <div className="flex items-center justify-between">

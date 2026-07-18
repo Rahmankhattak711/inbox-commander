@@ -9,8 +9,8 @@ import {
 const inputClass =
   "w-full px-4 py-3 rounded-xl text-xs outline-none transition";
 const inputStyle = {
-  background: "var(--bg-base)",
-  border: "1px solid var(--border)",
+  background: "var(--bg-card)",
+  borderColor: "var(--border)",
   color: "var(--text-primary)",
 };
 const inputFocus = (e: React.FocusEvent<HTMLInputElement>) =>

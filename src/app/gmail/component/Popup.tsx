@@ -21,9 +21,9 @@ export default function Popup({ onClose, setShowCreate }: PopupProps) {
     "w-full rounded-xl px-4 py-3 text-sm outline-none transition";
 
   const inputStyle = {
-    background: "var(--bg-card)",
-    border: "1px solid var(--border)",
-    color: "var(--text-primary)",
+     background: "var(--bg-card)",
+  borderColor: "var(--border)",
+  color: "var(--text-primary)",
   };
 
   const handleSendEmail = async () => {
