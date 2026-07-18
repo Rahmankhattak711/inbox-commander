@@ -21,8 +21,8 @@ export default function DraftPopup({ onClose, setShowCreate }: DraftPopupProps) 
 
   const inputStyle = {
     background: "var(--bg-card)",
-    border: "1px solid var(--border)",
-    color: "var(--text-primary)",
+  borderColor: "var(--border)",
+  color: "var(--text-primary)",
   };
 
   const handleSaveDraft = () => {
